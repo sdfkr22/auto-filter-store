@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@supabase/supabase-js";
 
 type Entry = {
   make: string; model: string; engine: string | null;
@@ -111,7 +111,10 @@ export async function GET(req: NextRequest) {
     allCodes.forEach((c) => { originalByNorm[norm(c)] = c; });
     const normalizedCodes = allCodes.map(norm);
 
-    const supabase = createAdminClient();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
     // 1. MANN ürünlerini çek (product_type = 'mann')
     const { data: mannRows } = await supabase
@@ -119,6 +122,7 @@ export async function GET(req: NextRequest) {
       .select("id, product_name, product_fancy_name, image_url, price, stock, equivalent_id")
       .eq("product_type", "mann")
       .in("product_name", normalizedCodes);
+
 
     // 2. Filtron eşdeğerlerini çek (equivalent_id'ler üzerinden)
     const equivalentIds = (mannRows ?? [])
