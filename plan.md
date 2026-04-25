@@ -214,15 +214,15 @@ admin_logs (
 > **Proje dizini:** `D:\docs_p\myprojects\auto-filter-store`
 > **Mimari not:** `mann-filter-data.json` (380k satır araç verisi) DB'ye taşınmadı — statik JSON olarak kalır. Araç→filtre eşleşmesi JSON'dan, ticari veri (fiyat/stok) Supabase'den çekilir.
 
-## V2.2 — Kullanıcı Girişi ← ŞU AN BURADAY IZ
+## V2.2 — Kullanıcı Girişi ✅ TAMAMLANDI
 
-- [ ] `/giris` — e-posta + şifre + Google OAuth
-- [ ] `/kayit` — ad, e-posta, telefon, şifre
-- [ ] `/sifremi-unuttum` + `/sifremi-sifirla`
-- [ ] E-posta doğrulama (Supabase SMTP)
-- [ ] `middleware.ts` — korumalı sayfalar: `/hesabim`, `/sepet`, `/odeme`, `/admin`
-- [ ] `/hesabim` — sipariş geçmişi + adres defteri + profil düzenle
-- [ ] `/hesabim/fatura-bilgileri` — TC/vergi no, kurumsal toggle (e-fatura v4'te ama bilgi v2'de toplanır)
+- [x] `/giris` — e-posta + şifre + Google OAuth
+- [x] `/kayit` — ad, e-posta, telefon, şifre
+- [x] `/sifremi-unuttum` + `/sifremi-sifirla`
+- [x] E-posta doğrulama (Supabase SMTP — callback route hazır)
+- [x] `proxy.ts` (Next.js 16) — korumalı sayfalar: `/hesabim`, `/sepet`, `/odeme`, `/admin`
+- [x] `/hesabim` — dashboard (sipariş / adres / profil / fatura linkleri) + çıkış
+- [x] `/hesabim/fatura-bilgileri` — TC/vergi no, kurumsal toggle
 
 ## V2.3 — Ürün Kataloğu
 

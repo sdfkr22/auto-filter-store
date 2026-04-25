@@ -11,12 +11,12 @@ const supabase = createClient(
 );
 
 type RawProduct = {
-  mann: string;
-  mann_name: string;
+  product_name: string;
+  product_fancy_name: string;
+  product_type: "mann" | "filtron";
   label: string;
-  mann_url: string | null;
-  filtron: string | null;
-  filtron_url: string | null;
+  image_url: string | null;
+  equivalent?: string;
 };
 
 function labelToSlug(label: string): string {
@@ -41,7 +41,7 @@ async function main() {
 
   const categoryMap: Record<string, string> = {};
   categories.forEach((c) => { categoryMap[c.slug] = c.id; });
-  console.log("Kategoriler:", categoryMap);
+  console.log("Kategoriler:", Object.keys(categoryMap).join(", "));
 
   const raw = fs.readFileSync(
     path.resolve(process.cwd(), "products.json"),
@@ -50,45 +50,80 @@ async function main() {
   const products: RawProduct[] = JSON.parse(raw);
   console.log(`${products.length} ürün bulundu.`);
 
-  // Eşsiz mann_code'lara göre tekilleştir
+  // Adım 1: product_name'e göre tekilleştir (aynı Filtron kodu birden fazla MANN'e eşdeğer olabilir)
   const seen = new Set<string>();
   const unique = products.filter((p) => {
-    if (seen.has(p.mann)) return false;
-    seen.add(p.mann);
+    if (seen.has(p.product_name)) return false;
+    seen.add(p.product_name);
     return true;
   });
-  console.log(`${unique.length} eşsiz ürün migrate edilecek.`);
+  console.log(`${unique.length} benzersiz ürün upsert edilecek (${products.length - unique.length} tekrar atlandı).`);
 
   const rows = unique.map((p) => ({
-    mann_code: p.mann,
-    mann_name: p.mann_name,
-    filtron_code: p.filtron ?? null,
-    category_id: categoryMap[labelToSlug(p.label)],
-    label_tr: p.label,
-    mann_url: p.mann_url ?? null,
-    filtron_url: p.filtron_url ?? null,
-    price: 0,
-    stock: 0,
+    product_name: p.product_name,
+    product_fancy_name: p.product_fancy_name,
+    product_type: p.product_type,
+    label: p.label,
+    image_url: p.image_url ?? null,
+    category_id: categoryMap[labelToSlug(p.label)] ?? null,
     active: true,
-    featured: false,
   }));
 
-  // 200'lük batch'ler halinde yükle
   const BATCH = 200;
-  let inserted = 0;
+  let upserted = 0;
 
   for (let i = 0; i < rows.length; i += BATCH) {
     const batch = rows.slice(i, i + BATCH);
-    const { error } = await supabase.from("products").insert(batch);
+    const { error } = await supabase
+      .from("products")
+      .upsert(batch, { onConflict: "product_name", ignoreDuplicates: false });
     if (error) {
-      console.error(`Batch ${i / BATCH + 1} hatası:`, error.message);
+      console.error(`Batch ${Math.floor(i / BATCH) + 1} hatası:`, error.message);
       process.exit(1);
     }
-    inserted += batch.length;
-    console.log(`${inserted}/${rows.length} ürün yüklendi...`);
+    upserted += batch.length;
+    console.log(`${upserted}/${rows.length} ürün upsert edildi...`);
   }
 
-  console.log(`\n✓ Migration tamamlandı. ${inserted} ürün Supabase'e yüklendi.`);
+  // Adım 2: equivalent_id'yi güncelle
+  console.log("\nEquivalent ID'ler güncelleniyor...");
+
+  const { data: allProducts } = await supabase
+    .from("products")
+    .select("id, product_name");
+
+  if (!allProducts) {
+    console.error("Ürünler çekilemedi.");
+    process.exit(1);
+  }
+
+  const idByName: Record<string, string> = {};
+  allProducts.forEach((p) => { idByName[p.product_name] = p.id; });
+
+  const withEquivalent = products.filter((p) => p.equivalent);
+  let linked = 0;
+
+  for (const p of withEquivalent) {
+    const myId = idByName[p.product_name];
+    const eqId = p.equivalent ? idByName[p.equivalent] : undefined;
+
+    if (!myId || !eqId) continue;
+
+    const { error } = await supabase
+      .from("products")
+      .update({ equivalent_id: eqId })
+      .eq("id", myId);
+
+    if (error) {
+      console.warn(`${p.product_name} → ${p.equivalent} bağlantısı kurulamadı:`, error.message);
+    } else {
+      linked++;
+    }
+  }
+
+  console.log(`\n✓ Migration tamamlandı.`);
+  console.log(`  ${upserted} ürün upsert edildi.`);
+  console.log(`  ${linked} equivalent bağlantısı kuruldu.`);
 }
 
 main();
