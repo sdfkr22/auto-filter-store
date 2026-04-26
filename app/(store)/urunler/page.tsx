@@ -4,8 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Ürünler" };
 
-const MANN_BADGE_BG   = "#0e2018";
-const MANN_COLOR      = "#6abf7b";
+const MANN_BADGE_BG   = "#0e1e30";
+const MANN_COLOR      = "#8fa4c0";
 const FILTRON_BADGE_BG = "#0e1e30";
 const FILTRON_COLOR   = "#8fa4c0";
 
@@ -13,7 +13,7 @@ const s = {
   wrap:  { minHeight: "100vh", background: "#090909", color: "#e5e5e5", fontFamily: "system-ui, sans-serif" } as const,
   header: { borderBottom: "1px solid #141414", padding: "14px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" } as const,
   logo:  { fontSize: 20, fontWeight: 700, color: "#e5e5e5", textDecoration: "none" } as const,
-  logoDot: { color: "#6abf7b" } as const,
+  logoDot: { color: "#8fa4c0" } as const,
   nav:   { display: "flex", gap: 8 } as const,
   navLink: { fontSize: 13, color: "#888", textDecoration: "none", padding: "6px 14px", borderRadius: 6 } as const,
   main:  { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 80px" } as const,
@@ -23,9 +23,9 @@ const s = {
   tab: (active: boolean) => ({
     padding: "6px 18px", borderRadius: 20, fontSize: 13, cursor: "pointer",
     border: "1px solid",
-    borderColor: active ? "#6abf7b" : "#222",
-    background:  active ? "#6abf7b18" : "transparent",
-    color:       active ? "#6abf7b" : "#555",
+    borderColor: active ? "#8fa4c0" : "#222",
+    background:  active ? "#8fa4c018" : "transparent",
+    color:       active ? "#8fa4c0" : "#555",
     textDecoration: "none",
     transition: "all 0.15s",
   }),
@@ -64,7 +64,7 @@ const s = {
     fontFamily: "monospace",
     background: isMann ? MANN_BADGE_BG : FILTRON_BADGE_BG,
     color:      isMann ? MANN_COLOR    : FILTRON_COLOR,
-    border: `1px solid ${isMann ? "#1e4030" : "#1e3050"}`,
+    border: "1px solid #1e3050",
     alignSelf: "flex-start" as const,
   }),
   brandDot: (isMann: boolean) => ({
@@ -172,7 +172,7 @@ export default async function UrunlerPage({
                   <div style={s.cardBody}>
                     <span style={s.badge(mann)}>
                       <span style={s.brandDot(mann)} />
-                      {mann ? "MANN" : "FILTRON"} {p.product_name}
+                      {mann ? "MANN" : "FILTRON"}
                     </span>
 
                     {p.product_fancy_name && p.product_fancy_name !== p.product_name && (

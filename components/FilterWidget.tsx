@@ -157,9 +157,6 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
       <div style={{ fontSize: 14, fontWeight: 700, color: FILTRON.text, margin: "2px 0", fontFamily: "monospace" }}>
         {item.filtronCode}
       </div>
-      <div style={{ fontSize: 9, color: "#444", marginTop: 1 }}>
-        MANN <span style={{ color: "#555" }}>{item.mannFancyName ?? item.mannCode}</span> muadili
-      </div>
 
       {item.filtronProductId ? (
         <>
@@ -229,21 +226,18 @@ export default function FilterWidget() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model]);
 
-  async function search() {
+  useEffect(() => {
     if (!engine) return;
     setLoading(true);
     setResults(null);
-    try {
-      const data = await fetchJson<Results | null>(
-        `/api/filters?type=results&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&engine=${encodeURIComponent(engine)}`
-      );
-      setResults(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+    fetchJson<Results | null>(
+      `/api/filters?type=results&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&engine=${encodeURIComponent(engine)}`
+    )
+      .then((data) => setResults(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine]);
 
   const selStyle: React.CSSProperties = {
     width: "100%", background: "#1a1a1a", border: "1px solid #2a2a2a",
@@ -275,13 +269,9 @@ export default function FilterWidget() {
         ))}
       </div>
 
-      <button
-        style={{ width: "100%", background: engine ? "#8fa4c0" : "#1a1a1a", color: engine ? "#090909" : "#444", border: "none", borderRadius: 8, padding: "11px", fontSize: 14, fontWeight: 600, cursor: engine && !loading ? "pointer" : "not-allowed" }}
-        disabled={!engine || loading}
-        onClick={search}
-      >
-        {loading ? "Aranıyor…" : "Filtreleri Göster"}
-      </button>
+      {loading && (
+        <div style={{ textAlign: "center", padding: "12px 0", fontSize: 12, color: "#555" }}>Aranıyor…</div>
+      )}
 
       {results && (
         <div style={{ marginTop: 20 }}>
@@ -312,8 +302,10 @@ export default function FilterWidget() {
           ) : (
             results.filterGroups.map((group) => (
               <div key={group.type} style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>
-                  {group.icon} {group.label}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>{group.icon}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#c8d8e8", letterSpacing: 0.2 }}>{group.label}</span>
+                  <div style={{ flex: 1, height: 1, background: "#1e1e1e", marginLeft: 4 }} />
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
                   {group.items.map((item, i) => (

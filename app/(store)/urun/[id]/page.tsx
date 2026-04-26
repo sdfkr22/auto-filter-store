@@ -109,10 +109,15 @@ export default async function UrunDetayPage({
 
   return (
     <div style={{ minHeight: "100vh", background: "#090909", color: "#e5e5e5", fontFamily: "system-ui, sans-serif" }}>
-      <header style={{ borderBottom: "1px solid #141414", padding: "14px 28px", display: "flex", alignItems: "center", gap: 12 }}>
-        <Link href="/urunler" style={{ fontSize: 13, color: "#888", textDecoration: "none" }}>← Ürünler</Link>
-        <span style={{ color: "#333", fontSize: 13 }}>/</span>
-        <span style={{ fontSize: 13, color: "#e5e5e5", fontFamily: "monospace" }}>{product.product_name}</span>
+      <header style={{ borderBottom: "1px solid #141414", padding: "14px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Link href="/" style={{ fontSize: 20, fontWeight: 700, color: "#e5e5e5", textDecoration: "none" }}>
+          auto<span style={{ color: "#8fa4c0" }}>-filter</span>
+        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Link href="/urunler" style={{ fontSize: 13, color: "#888", textDecoration: "none" }}>← Ürünler</Link>
+          <span style={{ color: "#333", fontSize: 13 }}>/</span>
+          <span style={{ fontSize: 13, color: "#e5e5e5", fontFamily: "monospace" }}>{product.product_name}</span>
+        </div>
       </header>
 
       <main style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px 80px" }}>
