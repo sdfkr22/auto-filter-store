@@ -153,34 +153,48 @@ export default async function UrunDetayPage({
 
         {/* Uyumlu araçlar */}
         <div>
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, paddingBottom: 10, borderBottom: "1px solid #1e1e1e" }}>
-            Uyumlu Araçlar ({vehicles.length})
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: "1px solid #1e1e1e" }}>
+            <span style={{ fontSize: 16, fontWeight: 600 }}>Uyumlu Araçlar</span>
+            <span style={{ fontSize: 12, fontWeight: 600, background: "#151e2a", color: "#8fa4c0", padding: "2px 10px", borderRadius: 20 }}>{vehicles.length}</span>
           </div>
           {vehicles.length === 0 ? (
             <div style={{ color: "#555", fontSize: 13 }}>Uyumlu araç verisi bulunamadı.</div>
-          ) : (
-            <div style={{ overflowX: "auto", overflowY: "auto", maxHeight: 420, borderRadius: 8, border: "1px solid #1a1a1a" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr>
-                    {["Marka / Model", "Motor", "kW / ps", "Üretim Yılı"].map((h) => (
-                      <th key={h} style={{ textAlign: "left", padding: "8px 12px", color: "#555", fontWeight: 500, borderBottom: "1px solid #1a1a1a" }}>{h}</th>
+          ) : (() => {
+            const grouped: Record<string, typeof vehicles> = {};
+            for (const v of vehicles) {
+              if (!grouped[v.make]) grouped[v.make] = [];
+              grouped[v.make].push(v);
+            }
+            const makes = Object.keys(grouped).sort();
+            return (
+              <div style={{ overflowY: "auto", maxHeight: 460, borderRadius: 10, border: "1px solid #1c1c1c" }}>
+                {/* Sütun başlığı */}
+                <div style={{ position: "sticky", top: 0, zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0d1520", borderBottom: "1px solid #1c2a3a", padding: "0 14px", height: 38 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#8fa4c0", textTransform: "uppercase", letterSpacing: "0.06em" }}>Model / Motor</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#8fa4c0", textTransform: "uppercase", letterSpacing: "0.06em" }}>kW / PS</span>
+                </div>
+                {makes.map((make) => (
+                  <div key={make}>
+                    {/* Marka sticky başlığı */}
+                    <div style={{ position: "sticky", top: 38, zIndex: 1, background: "#0b1622", borderTop: "1px solid #162030", borderBottom: "1px solid #162030", padding: "5px 14px", fontSize: 10, fontWeight: 700, color: "#4a6a8a", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                      {make}
+                    </div>
+                    {grouped[make].map((v, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: i % 2 === 0 ? "#0c0c0c" : "#0f1318", padding: "8px 14px", borderBottom: "1px solid #131313" }}>
+                        <div>
+                          <div style={{ fontSize: 13, color: "#ccd4dc", fontWeight: 500 }}>{v.model}</div>
+                          {v.engine && <div style={{ fontSize: 11, color: "#5a6a7a", marginTop: 2 }}>{v.engine}</div>}
+                        </div>
+                        <div style={{ fontSize: 12, fontFamily: "monospace", color: "#7a9ab8", textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
+                          {v.kw ? `${v.kw} / ${v.ps}` : "—"}
+                        </div>
+                      </div>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {vehicles.map((v, i) => (
-                    <tr key={i}>
-                      <td style={{ padding: "8px 12px", color: "#aaa", borderBottom: "1px solid #141414" }}>{v.make} {v.model}</td>
-                      <td style={{ padding: "8px 12px", color: "#aaa", borderBottom: "1px solid #141414" }}>{v.engine}</td>
-                      <td style={{ padding: "8px 12px", color: "#aaa", borderBottom: "1px solid #141414" }}>{v.kw ? `${v.kw} kW / ${v.ps} ps` : "—"}</td>
-                      <td style={{ padding: "8px 12px", color: "#aaa", borderBottom: "1px solid #141414" }}>{v.year_of_prod ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </main>
     </div>
