@@ -26,16 +26,8 @@ function getCompatibleVehicles(mannCode: string): Entry[] {
   );
 }
 
-const MANN_BG = "#0e2018";
-const MANN_BORDER = "#1a4030";
-const MANN_BADGE_BG = "#1a3828";
-const MANN_TEXT = "#6abf7b";
-const MANN_CODE_CLR = "#9de0a8";
-const FILTRON_BG = "#0e1e30";
-const FILTRON_BORDER = "#1e3a5a";
-const FILTRON_BADGE_BG = "#1a3050";
-const FILTRON_TEXT = "#8fa4c0";
-const FILTRON_CODE_CLR = "#c5d8f0";
+const MANN_ACCENT   = "#4a8a5a";
+const FILTRON_ACCENT = "#4a7aaa";
 
 type ProductRow = {
   id: string;
@@ -97,12 +89,8 @@ export default async function UrunDetayPage({
   const mannCode = mannProduct?.product_name ?? "";
   const vehicles = mannCode ? getCompatibleVehicles(mannCode) : [];
 
-  const BG     = isMann ? MANN_BG     : FILTRON_BG;
-  const BORDER = isMann ? MANN_BORDER : FILTRON_BORDER;
-  const BADGE  = isMann ? MANN_BADGE_BG : FILTRON_BADGE_BG;
-  const TEXT   = isMann ? MANN_TEXT   : FILTRON_TEXT;
-  const CODE   = isMann ? MANN_CODE_CLR : FILTRON_CODE_CLR;
-  const BRAND  = isMann ? "MANN" : "FİLTRON";
+  const ACCENT = isMann ? MANN_ACCENT : FILTRON_ACCENT;
+  const BRAND  = isMann ? "MANN-FILTER" : "FİLTRON";
 
   const inStock  = product.stock > 0;
   const hasPrice = product.price > 0;
@@ -123,79 +111,115 @@ export default async function UrunDetayPage({
       <main style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px 80px" }}>
 
         <div style={{ marginBottom: 40 }}>
-          <div style={{ background: BG, border: `1px solid ${BORDER}`, borderRadius: 14, padding: 28 }}>
-            {product.image_url && (
-              <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
-                <ProductImage src={product.image_url} alt={product.product_name}
-                  style={{ maxHeight: 160, maxWidth: "100%", objectFit: "contain" }}
-                />
+          <div style={{ background: "#0f0f0f", border: "1px solid #1c1c1c", borderLeft: `3px solid ${ACCENT}`, borderRadius: 14, overflow: "hidden" }}>
+
+            {/* Üst: resim + bilgi yan yana */}
+            <div style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
+
+              {product.image_url && (
+                <div style={{ width: 240, flexShrink: 0, background: "#111", borderRight: "1px solid #1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, position: "relative", overflow: "hidden", borderRadius: "14px 0 0 14px" }}>
+                  <ProductImage
+                    src={product.image_url}
+                    alt={product.product_name}
+                    style={{ maxWidth: 192, maxHeight: 220, objectFit: "contain", position: "relative", zIndex: 1 }}
+                  />
+                </div>
+              )}
+
+              <div style={{ flex: 1, padding: "22px 22px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+                {/* Marka + kod */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  
+                  <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#333", flexShrink: 0 }} />
+                  <span style={{ fontSize: 9, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.12em" }}>{BRAND}</span>
+                </div>
+
+                {/* Ürün adı */}
+                <div style={{ fontSize: 15, fontWeight: 600, color: "#e5e5e5", lineHeight: 1.4 }}>
+                  {product.product_fancy_name ?? product.product_name}
+                </div>
+
+                {/* Fiyat */}
+                <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", marginTop: 2 }}>
+                  {hasPrice
+                    ? `₺${product.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                    : <span style={{ fontSize: 14, color: "#555", fontWeight: 400 }}>Fiyat sorunuz</span>}
+                </div>
+
+                {/* Stok */}
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: inStock ? "#52c07a" : "#905050", flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: inStock ? "#52c07a" : "#905050" }}>
+                    {inStock ? `Stokta var — ${product.stock} adet` : "Stokta yok"}
+                  </span>
+                </div>
               </div>
-            )}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: BADGE, borderRadius: 6, padding: "5px 12px", marginBottom: 14 }}>
-              <span style={{ fontSize: 10, color: TEXT, textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 700 }}>{BRAND}</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: CODE, fontFamily: "monospace" }}>{product.product_name}</span>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.3, marginBottom: 16 }}>
-              {product.product_fancy_name ?? product.product_name}
+
+            {/* Alt: sepet butonu */}
+            <div style={{ padding: "0 16px 16px" }}>
+              <button
+                style={{ display: "block", width: "100%", background: inStock && hasPrice ? "#8fa4c0" : "#161616", color: inStock && hasPrice ? "#090909" : "#444", border: inStock && hasPrice ? "none" : "1px solid #222", borderRadius: 8, padding: "11px", fontSize: 14, fontWeight: 700, cursor: inStock && hasPrice ? "pointer" : "not-allowed" }}
+                disabled={!inStock || !hasPrice}>
+                {inStock && hasPrice ? "Sepete Ekle" : "Şu an satışta değil"}
+              </button>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 6 }}>
-              {hasPrice ? `₺${product.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}` : "Fiyat sorunuz"}
-            </div>
-            <div style={{ display: "inline-block", fontSize: 12, padding: "3px 10px", borderRadius: 12, background: inStock ? "#0e2a1a" : "#2a1414", color: inStock ? "#52c07a" : "#e05252", marginBottom: 20 }}>
-              {inStock ? `● Stokta var (${product.stock} adet)` : "● Stokta yok"}
-            </div>
-            <button style={{ display: "block", width: "100%", background: inStock && hasPrice ? TEXT : "#222", color: inStock && hasPrice ? "#090909" : "#555", border: "none", borderRadius: 8, padding: "12px", fontSize: 14, fontWeight: 700, cursor: inStock && hasPrice ? "pointer" : "not-allowed" }}
-              disabled={!inStock || !hasPrice}>
-              {inStock && hasPrice ? "Sepete Ekle" : "Şu an satışta değil"}
-            </button>
+
           </div>
         </div>
 
         {/* Uyumlu araçlar */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: "1px solid #1e1e1e" }}>
-            <span style={{ fontSize: 16, fontWeight: 600 }}>Uyumlu Araçlar</span>
-            <span style={{ fontSize: 12, fontWeight: 600, background: "#151e2a", color: "#8fa4c0", padding: "2px 10px", borderRadius: 20 }}>{vehicles.length}</span>
-          </div>
-          {vehicles.length === 0 ? (
-            <div style={{ color: "#555", fontSize: 13 }}>Uyumlu araç verisi bulunamadı.</div>
-          ) : (() => {
-            const grouped: Record<string, typeof vehicles> = {};
-            for (const v of vehicles) {
-              if (!grouped[v.make]) grouped[v.make] = [];
-              grouped[v.make].push(v);
-            }
-            const makes = Object.keys(grouped).sort();
-            return (
-              <div style={{ overflowY: "auto", maxHeight: 460, borderRadius: 10, border: "1px solid #1c1c1c" }}>
-                {/* Sütun başlığı */}
-                <div style={{ position: "sticky", top: 0, zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0d1520", borderBottom: "1px solid #1c2a3a", padding: "0 14px", height: 38 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#8fa4c0", textTransform: "uppercase", letterSpacing: "0.06em" }}>Model / Motor</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#8fa4c0", textTransform: "uppercase", letterSpacing: "0.06em" }}>kW / PS</span>
-                </div>
-                {makes.map((make) => (
-                  <div key={make}>
-                    {/* Marka sticky başlığı */}
-                    <div style={{ position: "sticky", top: 38, zIndex: 1, background: "#0b1622", borderTop: "1px solid #162030", borderBottom: "1px solid #162030", padding: "5px 14px", fontSize: 10, fontWeight: 700, color: "#4a6a8a", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                      {make}
+        {(() => {
+          const T = isMann
+            ? { head: "#0d1a10", headBorder: "#1a3020", headText: "#4a9a5a", makesBg: "#0a1510", makesBorder: "#162a1a", makesText: "#3a7a4a", kwColor: "#4a8a55", zebraOdd: "#0d100e" }
+            : { head: "#0d1520", headBorder: "#1a2a40", headText: "#4a7aaa", makesBg: "#0a1220", makesBorder: "#162030", makesText: "#3a6a9a", kwColor: "#4a7aaa", zebraOdd: "#0d1018" };
+          return (
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, paddingBottom: 10, borderBottom: "1px solid #1e1e1e" }}>
+                <span style={{ fontSize: 16, fontWeight: 600 }}>Uyumlu Araçlar</span>
+                <span style={{ fontSize: 12, fontWeight: 600, background: T.makesBg, color: T.headText, padding: "2px 10px", borderRadius: 20 }}>{vehicles.length}</span>
+              </div>
+              {vehicles.length === 0 ? (
+                <div style={{ color: "#555", fontSize: 13 }}>Uyumlu araç verisi bulunamadı.</div>
+              ) : (() => {
+                const grouped: Record<string, typeof vehicles> = {};
+                for (const v of vehicles) {
+                  if (!grouped[v.make]) grouped[v.make] = [];
+                  grouped[v.make].push(v);
+                }
+                const makes = Object.keys(grouped).sort();
+                return (
+                  <div style={{ overflowY: "auto", maxHeight: 460, borderRadius: 10, border: `1px solid ${T.headBorder}` }}>
+                    {/* Sütun başlığı */}
+                    <div style={{ position: "sticky", top: 0, zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", background: T.head, borderBottom: `1px solid ${T.headBorder}`, padding: "0 14px", height: 38 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: T.headText, textTransform: "uppercase", letterSpacing: "0.06em" }}>Model / Motor</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: T.headText, textTransform: "uppercase", letterSpacing: "0.06em" }}>kW / PS</span>
                     </div>
-                    {grouped[make].map((v, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: i % 2 === 0 ? "#0c0c0c" : "#0f1318", padding: "8px 14px", borderBottom: "1px solid #131313" }}>
-                        <div>
-                          <div style={{ fontSize: 13, color: "#ccd4dc", fontWeight: 500 }}>{v.model}</div>
-                          {v.engine && <div style={{ fontSize: 11, color: "#5a6a7a", marginTop: 2 }}>{v.engine}</div>}
+                    {makes.map((make) => (
+                      <div key={make}>
+                        {/* Marka sticky başlığı */}
+                        <div style={{ position: "sticky", top: 38, zIndex: 1, background: T.makesBg, borderTop: `1px solid ${T.makesBorder}`, borderBottom: `1px solid ${T.makesBorder}`, padding: "5px 14px", fontSize: 10, fontWeight: 700, color: T.makesText, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                          {make}
                         </div>
-                        <div style={{ fontSize: 12, fontFamily: "monospace", color: "#7a9ab8", textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
-                          {v.kw ? `${v.kw} / ${v.ps}` : "—"}
-                        </div>
+                        {grouped[make].map((v, i) => (
+                          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: i % 2 === 0 ? "#0c0c0c" : T.zebraOdd, padding: "8px 14px", borderBottom: "1px solid #131313" }}>
+                            <div>
+                              <div style={{ fontSize: 13, color: "#ccd4dc", fontWeight: 500 }}>{v.model}</div>
+                              {v.engine && <div style={{ fontSize: 11, color: "#5a6a7a", marginTop: 2 }}>{v.engine}</div>}
+                            </div>
+                            <div style={{ fontSize: 12, fontFamily: "monospace", color: T.kwColor, textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
+                              {v.kw ? `${v.kw} / ${v.ps}` : "—"}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
-                ))}
-              </div>
-            );
-          })()}
-        </div>
+                );
+              })()}
+            </div>
+          );
+        })()}
       </main>
     </div>
   );

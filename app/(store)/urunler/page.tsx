@@ -4,10 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Ürünler" };
 
-const MANN_BADGE_BG   = "#0e1e30";
-const MANN_COLOR      = "#8fa4c0";
-const FILTRON_BADGE_BG = "#0e1e30";
-const FILTRON_COLOR   = "#8fa4c0";
+const MANN_BADGE_BG   = "#0e1e14";
+const MANN_COLOR      = "#4a9a5a";
+const FILTRON_BADGE_BG = "#0e1a2a";
+const FILTRON_COLOR   = "#4a7aaa";
 
 const s = {
   wrap:  { minHeight: "100vh", background: "#090909", color: "#e5e5e5", fontFamily: "system-ui, sans-serif" } as const,
@@ -49,6 +49,8 @@ const s = {
     justifyContent: "center",
     padding: "16px",
     borderBottom: "1px solid #1a1a1a",
+    borderRadius: "12px 12px 0 0",
+    overflow: "hidden",
   } as const,
   imagePlaceholder: {
     width: 48, height: 48,
@@ -64,7 +66,7 @@ const s = {
     fontFamily: "monospace",
     background: isMann ? MANN_BADGE_BG : FILTRON_BADGE_BG,
     color:      isMann ? MANN_COLOR    : FILTRON_COLOR,
-    border: "1px solid #1e3050",
+    border: `1px solid ${isMann ? "#1a3020" : "#1a2a40"}`,
     alignSelf: "flex-start" as const,
   }),
   brandDot: (isMann: boolean) => ({
@@ -156,14 +158,16 @@ export default async function UrunlerPage({
               const mann = isMann(p.product_type);
               return (
                 <Link key={p.id} href={`/urun/${p.id}`} style={s.card}>
-                  <div style={s.imageBox}>
+                  <div style={{ ...s.imageBox, position: "relative" }}>
                     {p.image_url ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={p.image_url}
-                        alt={p.product_name}
-                        style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", display: "block" }}
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={p.image_url}
+                          alt={p.product_name}
+                          style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", display: "block", position: "relative", zIndex: 1 }}
+                        />
+                      </>
                     ) : (
                       <div style={s.imagePlaceholder}>⬡</div>
                     )}
