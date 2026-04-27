@@ -157,7 +157,7 @@ export default async function UrunlerPage({
             {products.map((p) => {
               const mann = isMann(p.product_type);
               return (
-                <Link key={p.id} href={`/urun/${p.id}`} style={s.card}>
+                <Link key={p.id} href={`/urun/${p.product_name}`} style={s.card}>
                   <div style={{ ...s.imageBox, position: "relative" }}>
                     {p.image_url ? (
                       <>

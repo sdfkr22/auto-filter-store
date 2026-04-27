@@ -45,14 +45,15 @@ type ProductRow = {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ name: string[] }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { name } = await params;
+  const productName = name.map(decodeURIComponent).join("/");
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
     .select("product_name, product_fancy_name")
-    .eq("id", id)
+    .eq("product_name", productName)
     .single();
   return { title: data ? `${data.product_name} — ${data.product_fancy_name ?? ""}` : "Ürün Detayı" };
 }
@@ -60,15 +61,16 @@ export async function generateMetadata({
 export default async function UrunDetayPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ name: string[] }>;
 }) {
-  const { id } = await params;
+  const { name } = await params;
+  const productName = name.map(decodeURIComponent).join("/");
   const supabase = await createClient();
 
   const { data: product } = await supabase
     .from("products")
     .select("id, product_name, product_fancy_name, product_type, image_url, price, compare_price, stock, active, equivalent_id")
-    .eq("id", id)
+    .eq("product_name", productName)
     .single() as { data: ProductRow | null };
 
   if (!product) notFound();
@@ -129,7 +131,7 @@ export default async function UrunDetayPage({
               <div style={{ flex: 1, padding: "22px 22px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
                 {/* Marka + kod */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  
+
                   <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#333", flexShrink: 0 }} />
                   <span style={{ fontSize: 9, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: "0.12em" }}>{BRAND}</span>
                 </div>

@@ -122,7 +122,7 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
       )}
 
       {item.mannProductId
-        ? <Link href={`/urun/${item.mannProductId}`} style={{ textDecoration: "none", display: "block" }}>{card}</Link>
+        ? <Link href={`/urun/${item.mannCode}`} style={{ textDecoration: "none", display: "block" }}>{card}</Link>
         : card}
     </div>
   );
@@ -190,8 +190,8 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
         </div>
       )}
 
-      {item.filtronProductId
-        ? <Link href={`/urun/${item.filtronProductId}`} style={{ textDecoration: "none", display: "block" }}>{card}</Link>
+      {item.filtronProductId && item.filtronCode
+        ? <Link href={`/urun/${item.filtronCode}`} style={{ textDecoration: "none", display: "block" }}>{card}</Link>
         : card}
     </div>
   );
