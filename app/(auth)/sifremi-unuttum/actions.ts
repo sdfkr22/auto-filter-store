@@ -9,7 +9,7 @@ export async function resetPassword(
 ): Promise<{ error: string | null; success: boolean }> {
   const email = (formData.get("email") as string).trim();
   const headersList = await headers();
-  const origin = headersList.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL;
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? headersList.get("origin");
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {

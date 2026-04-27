@@ -170,8 +170,8 @@ export default async function UrunlerPage({
       <header style={s.header}>
         <Link href="/" style={s.logo}>auto<span style={s.logoDot}>-filter</span></Link>
         <nav style={s.nav}>
-          <Link href="/" style={s.navLink}>Ana Sayfa</Link>
-          <Link href="/hesabim" style={s.navLink}>Hesabım</Link>
+          <Link href="/" className="nav-link" style={s.navLink}>Ana Sayfa</Link>
+          <Link href="/hesabim" className="nav-link" style={s.navLink}>Hesabım</Link>
         </nav>
       </header>
 
@@ -197,7 +197,7 @@ export default async function UrunlerPage({
             {products.map((p) => {
               const mann = isMann(p.product_type);
               return (
-                <Link key={p.id} href={`/urun/${p.product_name}`} style={s.card}>
+                <Link key={p.id} href={`/urun/${p.product_name}`} className="product-card" style={s.card}>
                   <div style={{ ...s.imageBox, position: "relative" }}>
                     {p.image_url ? (
                       <Image

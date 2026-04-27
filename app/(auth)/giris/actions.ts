@@ -29,7 +29,7 @@ export async function signIn(
 export async function signInWithGoogle(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const headersList = await headers();
-  const origin = headersList.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL;
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? headersList.get("origin");
   const next = (formData.get("next") as string) || "/hesabim";
 
   const { data, error } = await supabase.auth.signInWithOAuth({

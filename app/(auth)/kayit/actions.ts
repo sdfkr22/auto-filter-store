@@ -24,7 +24,7 @@ export async function signUp(
   if (password.length < 6) return { error: "Şifre en az 6 karakter olmalıdır.", success: false };
 
   const headersList = await headers();
-  const origin = headersList.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL;
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? headersList.get("origin");
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
