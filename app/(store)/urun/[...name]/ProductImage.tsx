@@ -1,23 +1,31 @@
 "use client";
 
+import Image from "next/image";
+import { useState } from "react";
+
 export default function ProductImage({
   src,
   alt,
+  width,
+  height,
   style,
 }: {
   src: string;
   alt: string;
+  width: number;
+  height: number;
   style?: React.CSSProperties;
 }) {
+  const [error, setError] = useState(false);
+  if (error) return null;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={src}
       alt={alt}
+      width={width}
+      height={height}
       style={style}
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.display = "none";
-      }}
+      onError={() => setError(true)}
     />
   );
 }

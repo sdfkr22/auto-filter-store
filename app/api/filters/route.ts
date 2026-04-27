@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import fs from "fs";
-import { createClient } from "@supabase/supabase-js";
+import { getMannData, toArray, norm } from "@/lib/mann-data";
+import { supabaseAnon } from "@/lib/supabase/anon";
+import filterTree from "@/lib/filter-tree.json";
 
-type Entry = {
-  make: string; model: string; engine: string | null;
-  kw: number | null; ps: number | null; year_of_prod: string | null;
-  air: string | string[] | null; oil: string | string[] | null;
-  fuel: string | string[] | null; cabin: string | string[] | null;
-};
+// Statik liste cevapları (makes/models/engines): JSON dosyasından türetiliyor,
+// pratik olarak hiç değişmiyor → CDN/browser uzun cache + uzun stale-while-revalidate.
+const CACHE_STATIC = "public, s-maxage=86400, stale-while-revalidate=604800";
+// Sonuç cevapları: stok/fiyat içerdiği için kısa CDN cache + makul stale.
+const CACHE_RESULTS = "public, s-maxage=600, stale-while-revalidate=3600";
 
-function toArray(val: string | string[] | null | undefined): string[] {
-  if (val == null) return [];
-  return Array.isArray(val) ? val : [val];
+function jsonWithCache(body: unknown, cacheControl: string) {
+  return NextResponse.json(body, { headers: { "Cache-Control": cacheControl } });
 }
 
 type DbProduct = {
@@ -33,17 +31,7 @@ type DbEquivalent = {
   stock: number;
 };
 
-let _cache: Entry[] | null = null;
-function getData(): Entry[] {
-  if (!_cache) {
-    const p = path.join(process.cwd(), "mann-filter-data.json");
-    _cache = JSON.parse(fs.readFileSync(p, "utf-8")) as Entry[];
-  }
-  return _cache;
-}
-
-// JSON kodu "C 10 011" (boşluklu), DB product_name "C10011" (boşuksuz)
-const norm = (c: string) => c.replace(/\s+/g, "").toUpperCase();
+// JSON kodu "C 10 011" (boşluklu), DB product_name "C10011" (boşuksuz) — norm `lib/mann-data` üzerinden
 
 const FILTER_TYPES = [
   { key: "oil"   as const, label: "Yağ Filtresi",   icon: "🛢️" },
@@ -58,32 +46,27 @@ export async function GET(req: NextRequest) {
   const make   = searchParams.get("make")   ?? "";
   const model  = searchParams.get("model")  ?? "";
   const engine = searchParams.get("engine") ?? "";
-  const data   = getData();
+  // Marka/model/motor: 7.7 MB JSON yerine build-time'da derlenmiş küçük ağaç
+  const tree = filterTree as Record<string, Record<string, string[]>>;
 
   if (type === "makes") {
-    return NextResponse.json([...new Set(data.map((e) => e.make))].sort());
+    return jsonWithCache(Object.keys(tree), CACHE_STATIC);
   }
 
   if (type === "models") {
-    if (!make) return NextResponse.json([]);
-    return NextResponse.json(
-      [...new Set(data.filter((e) => e.make === make).map((e) => e.model))].sort()
-    );
+    if (!make) return jsonWithCache([], CACHE_STATIC);
+    return jsonWithCache(Object.keys(tree[make] ?? {}), CACHE_STATIC);
   }
 
   if (type === "engines") {
-    if (!make || !model) return NextResponse.json([]);
-    return NextResponse.json(
-      [...new Set(
-        data
-          .filter((e) => e.make === make && e.model === model && e.engine && e.kw && e.ps)
-          .map((e) => `${e.engine} — ${e.ps} PS / ${e.kw} kW`)
-      )].sort()
-    );
+    if (!make || !model) return jsonWithCache([], CACHE_STATIC);
+    return jsonWithCache(tree[make]?.[model] ?? [], CACHE_STATIC);
   }
 
   if (type === "results") {
-    if (!make || !model || !engine) return NextResponse.json(null);
+    if (!make || !model || !engine) return jsonWithCache(null, CACHE_RESULTS);
+    // results yolu hâlâ tam veriyi tarıyor (uyumluluk için tüm filtre kodları lazım)
+    const data = getMannData();
 
     // engine param: "1.6 TDi — 115 PS / 85 kW" → base name "1.6 TDi"
     const engineBase = engine.includes(" — ") ? engine.split(" — ")[0] : engine;
@@ -91,7 +74,7 @@ export async function GET(req: NextRequest) {
     const entries = data.filter(
       (e) => e.make === make && e.model === model && e.engine === engineBase
     );
-    if (!entries.length) return NextResponse.json(null);
+    if (!entries.length) return jsonWithCache(null, CACHE_RESULTS);
 
     // Her filtre türü için benzersiz MANN kodlarını topla
     const codesByType: Record<string, string[]> = { oil: [], air: [], cabin: [], fuel: [] };
@@ -104,20 +87,15 @@ export async function GET(req: NextRequest) {
     }
 
     const allCodes = Object.values(codesByType).flat();
-    if (!allCodes.length) return NextResponse.json(null);
+    if (!allCodes.length) return jsonWithCache(null, CACHE_RESULTS);
 
     // JSON kodu (boşluklu) → normalleştirilmiş (boşuksuz) mapping
     const originalByNorm: Record<string, string> = {};
     allCodes.forEach((c) => { originalByNorm[norm(c)] = c; });
     const normalizedCodes = allCodes.map(norm);
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-
     // 1. MANN ürünlerini çek (product_type = 'mann')
-    const { data: mannRows } = await supabase
+    const { data: mannRows } = await supabaseAnon
       .from("products")
       .select("id, product_name, product_fancy_name, image_url, price, stock, equivalent_id")
       .eq("product_type", "mann")
@@ -131,7 +109,7 @@ export async function GET(req: NextRequest) {
 
     let filtronById: Record<string, DbEquivalent> = {};
     if (equivalentIds.length > 0) {
-      const { data: filtronRows } = await supabase
+      const { data: filtronRows } = await supabaseAnon
         .from("products")
         .select("id, product_name, image_url, price, stock")
         .eq("product_type", "filtron")
@@ -177,13 +155,13 @@ export async function GET(req: NextRequest) {
       .filter(Boolean);
 
     const first = entries[0];
-    return NextResponse.json({
+    return jsonWithCache({
       vehicle: {
         make: first.make, model: first.model, engine: first.engine,
         kw: first.kw, ps: first.ps, year_of_prod: first.year_of_prod,
       },
       filterGroups,
-    });
+    }, CACHE_RESULTS);
   }
 
   return NextResponse.json({ error: "Geçersiz istek" }, { status: 400 });

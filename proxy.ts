@@ -1,14 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Sadece login gerektiren yollarda çalışır — diğer her yerde middleware atlanır.
+// Halka açık sayfalar (/, /urunler, /urun/..., /giris, /kayit, /api/*) Supabase Auth
+// ağ çağrısı yapmadan render olur.
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // API route'ları ve statik dosyalar için session kontrolü gerekmez
-  if (pathname.startsWith("/api/") || pathname.startsWith("/auth/")) {
-    return NextResponse.next({ request });
-  }
-
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -37,13 +33,10 @@ export async function proxy(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const protectedPaths = ["/hesabim", "/sepet", "/odeme", "/admin"];
-    const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
-
-    if (isProtected && !user) {
+    if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = "/giris";
-      url.searchParams.set("next", pathname);
+      url.searchParams.set("next", request.nextUrl.pathname);
       return NextResponse.redirect(url);
     }
   } catch {
@@ -55,6 +48,13 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/hesabim",
+    "/hesabim/:path*",
+    "/sepet",
+    "/sepet/:path*",
+    "/odeme",
+    "/odeme/:path*",
+    "/admin",
+    "/admin/:path*",
   ],
 };

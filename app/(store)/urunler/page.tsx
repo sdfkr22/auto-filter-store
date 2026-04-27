@@ -1,13 +1,48 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
+import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { supabaseAnon } from "@/lib/supabase/anon";
 
 export const metadata: Metadata = { title: "Ürünler" };
 
-const MANN_BADGE_BG   = "#0e1e14";
-const MANN_COLOR      = "#4a9a5a";
-const FILTRON_BADGE_BG = "#0e1a2a";
-const FILTRON_COLOR   = "#4a7aaa";
+const PAGE_SIZE = 48;
+
+// 1 saatlik ISR — ürünler ve kategoriler nadiren değiştiği için her sayfa
+// yüklemede DB'ye gitmek yerine cache'lenmiş sonucu kullan.
+const getCategories = unstable_cache(
+  async () => {
+    const { data } = await supabaseAnon
+      .from("categories")
+      .select("id, slug, name_tr, icon")
+      .order("sort_order");
+    return data ?? [];
+  },
+  ["urunler:categories"],
+  { revalidate: 3600, tags: ["categories"] }
+);
+
+const getProductsPage = unstable_cache(
+  async (label: string | undefined, page: number) => {
+    const start = (page - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE - 1;
+    const q = supabaseAnon
+      .from("products")
+      .select("id, product_name, product_fancy_name, product_type, image_url, price, stock", { count: "exact" })
+      .eq("active", true);
+    const { data, count } = label
+      ? await q.eq("label", label).order("product_name").range(start, end)
+      : await q.order("product_name").range(start, end);
+    return { products: data ?? [], total: count ?? 0 };
+  },
+  ["urunler:products-page"],
+  { revalidate: 3600, tags: ["products"] }
+);
+
+const MANN_BADGE_BG   = "#0e1e30";
+const MANN_COLOR      = "#8fa4c0";
+const FILTRON_BADGE_BG = "#0e1e30";
+const FILTRON_COLOR   = "#8fa4c0";
 
 const s = {
   wrap:  { minHeight: "100vh", background: "#090909", color: "#e5e5e5", fontFamily: "system-ui, sans-serif" } as const,
@@ -66,7 +101,7 @@ const s = {
     fontFamily: "monospace",
     background: isMann ? MANN_BADGE_BG : FILTRON_BADGE_BG,
     color:      isMann ? MANN_COLOR    : FILTRON_COLOR,
-    border: `1px solid ${isMann ? "#1a3020" : "#1a2a40"}`,
+    border: "1px solid #1e3050",
     alignSelf: "flex-start" as const,
   }),
   brandDot: (isMann: boolean) => ({
@@ -86,6 +121,16 @@ const s = {
     color: ok ? "#52c07a" : "#905050",
   }),
   empty: { textAlign: "center" as const, padding: "80px 0", color: "#444", fontSize: 14 },
+  pager: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 40 } as const,
+  pageBtn: (disabled: boolean) => ({
+    padding: "8px 14px", borderRadius: 6, fontSize: 13,
+    border: "1px solid #222",
+    background: disabled ? "transparent" : "#131313",
+    color: disabled ? "#333" : "#aaa",
+    textDecoration: "none",
+    pointerEvents: disabled ? ("none" as const) : ("auto" as const),
+  }),
+  pageInfo: { fontSize: 12, color: "#555", padding: "0 8px" } as const,
 };
 
 // products.json label → kategori slug eşleşmesi
@@ -99,31 +144,26 @@ const SLUG_TO_LABEL: Record<string, string> = {
 export default async function UrunlerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kategori?: string }>;
+  searchParams: Promise<{ kategori?: string; sayfa?: string }>;
 }) {
-  const { kategori } = await searchParams;
-  const supabase = await createClient();
-
+  const { kategori, sayfa } = await searchParams;
   const label = kategori ? SLUG_TO_LABEL[kategori] : undefined;
+  const page = Math.max(1, parseInt(sayfa ?? "1", 10) || 1);
 
-  const [{ data: categories }, { data: rawProducts }] = await Promise.all([
-    supabase.from("categories").select("id, slug, name_tr, icon").order("sort_order"),
-    label
-      ? supabase
-          .from("products")
-          .select("id, product_name, product_fancy_name, product_type, image_url, price, stock")
-          .eq("active", true)
-          .eq("label", label)
-          .order("product_name")
-      : supabase
-          .from("products")
-          .select("id, product_name, product_fancy_name, product_type, image_url, price, stock")
-          .eq("active", true)
-          .order("product_name"),
+  const [categories, { products, total }] = await Promise.all([
+    getCategories(),
+    getProductsPage(label, page),
   ]);
-
-  const products = rawProducts ?? [];
   const isMann = (type: string | null | undefined) => (type ?? "mann") !== "filtron";
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const buildUrl = (p: number) => {
+    const params = new URLSearchParams();
+    if (kategori) params.set("kategori", kategori);
+    if (p > 1) params.set("sayfa", String(p));
+    const qs = params.toString();
+    return qs ? `/urunler?${qs}` : "/urunler";
+  };
 
   return (
     <div style={s.wrap}>
@@ -138,7 +178,7 @@ export default async function UrunlerPage({
       <main style={s.main}>
         <div style={s.topRow}>
           <h1 style={s.pageTitle}>Ürünler</h1>
-          <span style={{ fontSize: 13, color: "#444" }}>{products.length} ürün</span>
+          <span style={{ fontSize: 13, color: "#444" }}>{total} ürün</span>
         </div>
 
         <div style={s.tabs}>
@@ -160,14 +200,13 @@ export default async function UrunlerPage({
                 <Link key={p.id} href={`/urun/${p.product_name}`} style={s.card}>
                   <div style={{ ...s.imageBox, position: "relative" }}>
                     {p.image_url ? (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={p.image_url}
-                          alt={p.product_name}
-                          style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", display: "block", position: "relative", zIndex: 1 }}
-                        />
-                      </>
+                      <Image
+                        src={p.image_url}
+                        alt={p.product_name}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1200px) 25vw, 200px"
+                        style={{ objectFit: "contain" }}
+                      />
                     ) : (
                       <div style={s.imagePlaceholder}>⬡</div>
                     )}
@@ -200,6 +239,14 @@ export default async function UrunlerPage({
               );
             })}
           </div>
+        )}
+
+        {totalPages > 1 && (
+          <nav style={s.pager} aria-label="Sayfalama">
+            <Link href={buildUrl(page - 1)} style={s.pageBtn(page <= 1)} aria-disabled={page <= 1}>← Önceki</Link>
+            <span style={s.pageInfo}>Sayfa {page} / {totalPages}</span>
+            <Link href={buildUrl(page + 1)} style={s.pageBtn(page >= totalPages)} aria-disabled={page >= totalPages}>Sonraki →</Link>
+          </nav>
         )}
       </main>
     </div>

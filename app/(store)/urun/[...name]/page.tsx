@@ -1,30 +1,10 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import path from "path";
-import fs from "fs";
-import { createClient } from "@/lib/supabase/server";
+import { getCompatibleVehicles } from "@/lib/mann-data";
+import { supabaseAnon } from "@/lib/supabase/anon";
 import ProductImage from "./ProductImage";
-
-type Entry = {
-  make: string; model: string; engine: string | null;
-  kw: number | null; ps: number | null; year_of_prod: string | null;
-  air: string | string[] | null; oil: string | string[] | null;
-  fuel: string | string[] | null; cabin: string | string[] | null;
-};
-
-const norm = (c: string) => c.replace(/\s+/g, "").toUpperCase();
-
-function getCompatibleVehicles(mannCode: string): Entry[] {
-  const p = path.join(process.cwd(), "mann-filter-data.json");
-  const data: Entry[] = JSON.parse(fs.readFileSync(p, "utf-8"));
-  const target = norm(mannCode);
-  const toArr = (v: string | string[] | null) => v == null ? [] : Array.isArray(v) ? v : [v];
-  return data.filter((e) =>
-    [...toArr(e.air), ...toArr(e.oil), ...toArr(e.fuel), ...toArr(e.cabin)]
-      .some((c) => norm(c) === target)
-  );
-}
 
 const MANN_ACCENT   = "#4a8a5a";
 const FILTRON_ACCENT = "#4a7aaa";
@@ -42,6 +22,25 @@ type ProductRow = {
   equivalent_id: string | null;
 };
 
+type ProductWithEquivalent = ProductRow & { equivalent: ProductRow | null };
+
+const PRODUCT_FIELDS = "id, product_name, product_fancy_name, product_type, image_url, price, compare_price, stock, active, equivalent_id";
+
+// Tek query'de ürün + eşdeğeri (FK üzerinden embedded join). 1 saatlik cache —
+// hem generateMetadata hem render aynı cache key'i paylaşır, dedupe edilir.
+const getProduct = unstable_cache(
+  async (productName: string): Promise<ProductWithEquivalent | null> => {
+    const { data } = await supabaseAnon
+      .from("products")
+      .select(`${PRODUCT_FIELDS}, equivalent:equivalent_id (${PRODUCT_FIELDS})`)
+      .eq("product_name", productName)
+      .single();
+    return data as ProductWithEquivalent | null;
+  },
+  ["urun:product"],
+  { revalidate: 3600, tags: ["products"] }
+);
+
 export async function generateMetadata({
   params,
 }: {
@@ -49,12 +48,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { name } = await params;
   const productName = name.map(decodeURIComponent).join("/");
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("products")
-    .select("product_name, product_fancy_name")
-    .eq("product_name", productName)
-    .single();
+  const data = await getProduct(productName);
   return { title: data ? `${data.product_name} — ${data.product_fancy_name ?? ""}` : "Ürün Detayı" };
 }
 
@@ -65,25 +59,11 @@ export default async function UrunDetayPage({
 }) {
   const { name } = await params;
   const productName = name.map(decodeURIComponent).join("/");
-  const supabase = await createClient();
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("id, product_name, product_fancy_name, product_type, image_url, price, compare_price, stock, active, equivalent_id")
-    .eq("product_name", productName)
-    .single() as { data: ProductRow | null };
+  const full = await getProduct(productName);
+  if (!full) notFound();
 
-  if (!product) notFound();
-
-  let equivalent: ProductRow | null = null;
-  if (product.equivalent_id) {
-    const { data: eq } = await supabase
-      .from("products")
-      .select("id, product_name, product_fancy_name, product_type, image_url, price, compare_price, stock, active, equivalent_id")
-      .eq("id", product.equivalent_id)
-      .single() as { data: ProductRow | null };
-    equivalent = eq;
-  }
+  const { equivalent, ...product } = full;
 
   const isMann = product.product_type === "mann";
   const mannProduct = isMann ? product : equivalent;
@@ -123,7 +103,9 @@ export default async function UrunDetayPage({
                   <ProductImage
                     src={product.image_url}
                     alt={product.product_name}
-                    style={{ maxWidth: 192, maxHeight: 220, objectFit: "contain", position: "relative", zIndex: 1 }}
+                    width={192}
+                    height={220}
+                    style={{ width: "auto", height: "auto", maxWidth: 192, maxHeight: 220, objectFit: "contain", position: "relative", zIndex: 1 }}
                   />
                 </div>
               )}

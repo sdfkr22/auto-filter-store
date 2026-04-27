@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 const MANN = {
@@ -114,8 +115,7 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
 
       {hovered && item.mannImageUrl && (
         <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", border: "1px solid #333", borderRadius: 10, padding: 8, zIndex: 50, boxShadow: "0 8px 32px rgba(0,0,0,.6)", pointerEvents: "none", minWidth: 160 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={item.mannImageUrl} alt={item.mannCode} style={{ width: 160, height: "auto", borderRadius: 6, display: "block" }} />
+          <Image src={item.mannImageUrl} alt={item.mannCode} width={160} height={160} sizes="160px" style={{ width: 160, height: "auto", borderRadius: 6, display: "block", objectFit: "contain" }} />
           <div style={{ fontSize: 9, color: "#555", textAlign: "center", marginTop: 4 }}>{item.mannFancyName ?? item.mannCode}</div>
           <div style={{ position: "absolute", bottom: -6, left: "50%", width: 12, height: 12, background: "#1a1a1a", border: "1px solid #333", borderTop: "none", borderLeft: "none", transform: "translateX(-50%) rotate(45deg)" }} />
         </div>
@@ -183,8 +183,7 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
 
       {hovered && item.filtronImageUrl && (
         <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#1a1a1a", border: "1px solid #333", borderRadius: 10, padding: 8, zIndex: 50, boxShadow: "0 8px 32px rgba(0,0,0,.6)", pointerEvents: "none", minWidth: 160 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={item.filtronImageUrl} alt={item.filtronCode} style={{ width: 160, height: "auto", borderRadius: 6, display: "block" }} />
+          <Image src={item.filtronImageUrl} alt={item.filtronCode ?? ""} width={160} height={160} sizes="160px" style={{ width: 160, height: "auto", borderRadius: 6, display: "block", objectFit: "contain" }} />
           <div style={{ fontSize: 9, color: FILTRON.text, textAlign: "center", marginTop: 4 }}>FILTRON {item.filtronCode}</div>
           <div style={{ position: "absolute", bottom: -6, left: "50%", width: 12, height: 12, background: "#1a1a1a", border: "1px solid #333", borderTop: "none", borderLeft: "none", transform: "translateX(-50%) rotate(45deg)" }} />
         </div>
