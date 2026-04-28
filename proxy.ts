@@ -50,8 +50,6 @@ export const config = {
   matcher: [
     "/hesabim",
     "/hesabim/:path*",
-    "/sepet",
-    "/sepet/:path*",
     "/odeme",
     "/odeme/:path*",
     "/admin",

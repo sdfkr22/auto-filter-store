@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { getCompatibleVehicles } from "@/lib/mann-data";
 import { supabaseAnon } from "@/lib/supabase/anon";
 import ProductImage from "./ProductImage";
+import AddToCart from "./AddToCart";
+import StoreHeaderShell from "@/components/StoreHeaderShell";
 
 const MANN_ACCENT   = "#4a8a5a";
 const FILTRON_ACCENT = "#4a7aaa";
@@ -14,6 +16,7 @@ type ProductRow = {
   product_name: string;
   product_fancy_name: string | null;
   product_type: string;
+  label: string | null;
   image_url: string | null;
   price: number;
   compare_price: number | null;
@@ -22,9 +25,17 @@ type ProductRow = {
   equivalent_id: string | null;
 };
 
+// products.label → /urunler?kategori=... slug + görünür isim
+const LABEL_TO_CATEGORY: Record<string, { slug: string; name: string }> = {
+  "Hava filtresi":        { slug: "hava-filtresi",  name: "Hava Filtresi"  },
+  "Yag filtresi":         { slug: "yag-filtresi",   name: "Yağ Filtresi"   },
+  "Yakit filtresi":       { slug: "yakit-filtresi", name: "Yakıt Filtresi" },
+  "Kabin hava filtresi":  { slug: "polen-filtresi", name: "Polen Filtresi" },
+};
+
 type ProductWithEquivalent = ProductRow & { equivalent: ProductRow | null };
 
-const PRODUCT_FIELDS = "id, product_name, product_fancy_name, product_type, image_url, price, compare_price, stock, active, equivalent_id";
+const PRODUCT_FIELDS = "id, product_name, product_fancy_name, product_type, label, image_url, price, compare_price, stock, active, equivalent_id";
 
 // Tek query'de ürün + eşdeğeri (FK üzerinden embedded join). 1 saatlik cache —
 // hem generateMetadata hem render aynı cache key'i paylaşır, dedupe edilir.
@@ -79,18 +90,31 @@ export default async function UrunDetayPage({
 
   return (
     <div style={{ minHeight: "100vh", background: "#090909", color: "#e5e5e5", fontFamily: "system-ui, sans-serif" }}>
-      <header style={{ borderBottom: "1px solid #141414", padding: "14px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ fontSize: 20, fontWeight: 700, color: "#e5e5e5", textDecoration: "none" }}>
-          auto<span style={{ color: "#8fa4c0" }}>-filter</span>
-        </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Link href="/urunler" style={{ fontSize: 13, color: "#888", textDecoration: "none" }}>← Ürünler</Link>
-          <span style={{ color: "#333", fontSize: 13 }}>/</span>
-          <span style={{ fontSize: 13, color: "#e5e5e5", fontFamily: "monospace" }}>{product.product_name}</span>
-        </div>
-      </header>
+      <StoreHeaderShell />
 
-      <main style={{ maxWidth: 560, margin: "0 auto", padding: "40px 24px 80px" }}>
+      <main style={{ maxWidth: 560, margin: "0 auto", padding: "28px 24px 80px" }}>
+
+        {/* Breadcrumb */}
+        {(() => {
+          const cat = product.label ? LABEL_TO_CATEGORY[product.label] : null;
+          const crumbLink: React.CSSProperties = { color: "#666", textDecoration: "none" };
+          const crumbSep:  React.CSSProperties = { color: "#333", margin: "0 6px" };
+          return (
+            <nav aria-label="Breadcrumb" style={{ fontSize: 12, marginBottom: 20, display: "flex", alignItems: "center", flexWrap: "wrap" }}>
+              <Link href="/" style={crumbLink}>Ana Sayfa</Link>
+              <span style={crumbSep}>›</span>
+              <Link href="/urunler" style={crumbLink}>Ürünler</Link>
+              {cat && (
+                <>
+                  <span style={crumbSep}>›</span>
+                  <Link href={`/urunler?kategori=${cat.slug}`} style={crumbLink}>{cat.name}</Link>
+                </>
+              )}
+              <span style={crumbSep}>›</span>
+              <span style={{ color: "#aaa", fontFamily: "monospace" }}>{product.product_name}</span>
+            </nav>
+          );
+        })()}
 
         <div style={{ marginBottom: 40 }}>
           <div style={{ background: "#0f0f0f", border: "1px solid #1c1c1c", borderLeft: `3px solid ${ACCENT}`, borderRadius: 14, overflow: "hidden" }}>
@@ -124,10 +148,22 @@ export default async function UrunDetayPage({
                 </div>
 
                 {/* Fiyat */}
-                <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0", marginTop: 2 }}>
-                  {hasPrice
-                    ? `₺${product.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
-                    : <span style={{ fontSize: 14, color: "#555", fontWeight: 400 }}>Fiyat sorunuz</span>}
+                <div style={{ marginTop: 2 }}>
+                  {hasPrice && product.compare_price && product.compare_price > product.price && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 13, color: "#666", textDecoration: "line-through" }}>
+                        ₺{product.compare_price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                      </span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#e05252", background: "#2a0e0e", border: "1px solid #4a1818", padding: "2px 7px", borderRadius: 4 }}>
+                        %{Math.round(((product.compare_price - product.price) / product.compare_price) * 100)} indirim
+                      </span>
+                    </div>
+                  )}
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "#f0f0f0" }}>
+                    {hasPrice
+                      ? `₺${product.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                      : <span style={{ fontSize: 14, color: "#555", fontWeight: 400 }}>Fiyat sorunuz</span>}
+                  </div>
                 </div>
 
                 {/* Stok */}
@@ -140,17 +176,56 @@ export default async function UrunDetayPage({
               </div>
             </div>
 
-            {/* Alt: sepet butonu */}
+            {/* Alt: adet + sepet butonu */}
             <div style={{ padding: "0 16px 16px" }}>
-              <button
-                style={{ display: "block", width: "100%", background: inStock && hasPrice ? "#8fa4c0" : "#161616", color: inStock && hasPrice ? "#090909" : "#444", border: inStock && hasPrice ? "none" : "1px solid #222", borderRadius: 8, padding: "11px", fontSize: 14, fontWeight: 700, cursor: inStock && hasPrice ? "pointer" : "not-allowed" }}
-                disabled={!inStock || !hasPrice}>
-                {inStock && hasPrice ? "Sepete Ekle" : "Şu an satışta değil"}
-              </button>
+              <AddToCart productId={product.id} stock={product.stock} hasPrice={hasPrice} />
             </div>
 
           </div>
         </div>
+
+        {/* Muadil ürün */}
+        {equivalent && (() => {
+          const eqIsMann = equivalent.product_type === "mann";
+          const EQ_ACCENT = eqIsMann ? MANN_ACCENT : FILTRON_ACCENT;
+          const EQ_BRAND  = eqIsMann ? "MANN-FILTER" : "FİLTRON";
+          const eqInStock = equivalent.stock > 0;
+          const eqHasPrice = equivalent.price > 0;
+          return (
+            <div style={{ marginBottom: 40 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+                Muadil Ürün
+              </div>
+              <Link href={`/urun/${equivalent.product_name}`} style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+                <div style={{ background: "#0c0c0c", border: "1px solid #1c1c1c", borderLeft: `3px solid ${EQ_ACCENT}`, borderRadius: 10, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: EQ_ACCENT, textTransform: "uppercase", letterSpacing: "0.12em" }}>{EQ_BRAND}</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#e5e5e5", fontFamily: "monospace" }}>{equivalent.product_name}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: eqInStock ? "#52c07a" : "#905050", flexShrink: 0 }} />
+                      <span style={{ fontSize: 11, color: eqInStock ? "#52c07a" : "#905050" }}>
+                        {eqInStock ? "Stokta var" : "Stokta yok"}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    {eqHasPrice && equivalent.compare_price && equivalent.compare_price > equivalent.price && (
+                      <div style={{ fontSize: 11, color: "#666", textDecoration: "line-through" }}>
+                        ₺{equivalent.compare_price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#f0f0f0" }}>
+                      {eqHasPrice
+                        ? `₺${equivalent.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
+                        : <span style={{ fontSize: 12, color: "#555", fontWeight: 400 }}>Fiyat sorunuz</span>}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#666", marginTop: 4 }}>İncele →</div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          );
+        })()}
 
         {/* Uyumlu araçlar */}
         {(() => {

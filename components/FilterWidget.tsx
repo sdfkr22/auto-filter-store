@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useCart } from "@/components/cart/CartProvider";
 
 const MANN = {
   bg: "linear-gradient(135deg, #141a08, #121a0a)",
@@ -31,13 +32,15 @@ type FilterItem = {
   mannFancyName:    string | null;
   mannImageUrl:     string | null;
   mannPrice:        number;
+  mannComparePrice: number | null;
   mannStock:        number;
   mannFound:        boolean;
-  filtronProductId: string | null;
-  filtronCode:      string | null;
-  filtronImageUrl:  string | null;
-  filtronPrice:     number;
-  filtronStock:     number;
+  filtronProductId:    string | null;
+  filtronCode:         string | null;
+  filtronImageUrl:     string | null;
+  filtronPrice:        number;
+  filtronComparePrice: number | null;
+  filtronStock:        number;
 };
 
 type FilterGroup = {
@@ -63,7 +66,23 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
   const [hovered, setHovered] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [done, setDone] = useState(false);
+  const { addItem } = useCart();
   const inStock = item.mannStock > 0;
+
+  const handleAdd = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!item.mannProductId || pending) return;
+    setPending(true);
+    const res = await addItem(item.mannProductId, 1);
+    setPending(false);
+    if (res.ok) {
+      setDone(true);
+      setTimeout(() => setDone(false), 1500);
+    }
+  };
 
   const card = (
     <div style={{
@@ -93,13 +112,41 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
           <div style={{ fontSize: 11, color: inStock ? "#52c07a" : "#e05252", marginTop: 2 }}>
             {inStock ? "● Stokta var" : "● Stokta yok"}
           </div>
+          {item.mannComparePrice && item.mannComparePrice > item.mannPrice && item.mannPrice > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: 10, color: "#666", textDecoration: "line-through" }}>
+                ₺{item.mannComparePrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+              </span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#e05252", background: "#2a0e0e", border: "1px solid #4a1818", padding: "1px 5px", borderRadius: 3 }}>
+                %{Math.round(((item.mannComparePrice - item.mannPrice) / item.mannComparePrice) * 100)}
+              </span>
+            </div>
+          )}
           <div style={{ fontSize: 14, fontWeight: 700, color: "#e5e5e5", marginTop: 4 }}>
             {item.mannPrice > 0
               ? `₺${item.mannPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
               : "Fiyat sorunuz"}
           </div>
           {item.mannProductId && (
-            <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detaylar ve uyumlu araçlar →</div>
+            inStock && item.mannPrice > 0 ? (
+              <button
+                type="button"
+                onClick={handleAdd}
+                disabled={pending}
+                style={{
+                  marginTop: 8, width: "100%",
+                  background: done ? "#52c07a" : pending ? "#5a6a80" : MANN.dot,
+                  color: "#fff",
+                  border: "none", borderRadius: 5,
+                  padding: "6px 8px", fontSize: 11, fontWeight: 700,
+                  cursor: pending ? "wait" : "pointer", fontFamily: "inherit",
+                }}
+              >
+                {done ? "Eklendi ✓" : pending ? "Ekleniyor…" : "Sepete Ekle"}
+              </button>
+            ) : (
+              <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detayları gör →</div>
+            )
           )}
         </>
       ) : (
@@ -130,10 +177,26 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
 
 function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
   const [hovered, setHovered] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [done, setDone] = useState(false);
+  const { addItem } = useCart();
 
   if (!item.filtronCode) return null;
 
   const inStock = item.filtronStock > 0;
+
+  const handleAdd = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!item.filtronProductId || pending) return;
+    setPending(true);
+    const res = await addItem(item.filtronProductId, 1);
+    setPending(false);
+    if (res.ok) {
+      setDone(true);
+      setTimeout(() => setDone(false), 1500);
+    }
+  };
 
   const card = (
     <div style={{
@@ -163,12 +226,40 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
           <div style={{ fontSize: 11, color: inStock ? "#52c07a" : "#e05252", marginTop: 4 }}>
             {inStock ? "● Stokta var" : "● Stokta yok"}
           </div>
+          {item.filtronComparePrice && item.filtronComparePrice > item.filtronPrice && item.filtronPrice > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: 10, color: "#666", textDecoration: "line-through" }}>
+                ₺{item.filtronComparePrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+              </span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#e05252", background: "#2a0e0e", border: "1px solid #4a1818", padding: "1px 5px", borderRadius: 3 }}>
+                %{Math.round(((item.filtronComparePrice - item.filtronPrice) / item.filtronComparePrice) * 100)}
+              </span>
+            </div>
+          )}
           <div style={{ fontSize: 14, fontWeight: 700, color: "#e5e5e5", marginTop: 4 }}>
             {item.filtronPrice > 0
               ? `₺${item.filtronPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
               : "Fiyat sorunuz"}
           </div>
-          <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detaylar ve uyumlu araçlar →</div>
+          {inStock && item.filtronPrice > 0 ? (
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={pending}
+              style={{
+                marginTop: 8, width: "100%",
+                background: done ? "#52c07a" : pending ? "#5a6a80" : FILTRON.dot,
+                color: "#fff",
+                border: "none", borderRadius: 5,
+                padding: "6px 8px", fontSize: 11, fontWeight: 700,
+                cursor: pending ? "wait" : "pointer", fontFamily: "inherit",
+              }}
+            >
+              {done ? "Eklendi ✓" : pending ? "Ekleniyor…" : "Sepete Ekle"}
+            </button>
+          ) : (
+            <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detayları gör →</div>
+          )}
         </>
       ) : (
         <div style={{ fontSize: 10, color: "#444", marginTop: 4 }}>Sistemde kayıtlı değil</div>

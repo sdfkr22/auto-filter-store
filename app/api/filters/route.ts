@@ -19,6 +19,7 @@ type DbProduct = {
   product_fancy_name: string | null;
   image_url: string | null;
   price: number;
+  compare_price: number | null;
   stock: number;
   equivalent_id: string | null;
 };
@@ -28,6 +29,7 @@ type DbEquivalent = {
   product_name: string;
   image_url: string | null;
   price: number;
+  compare_price: number | null;
   stock: number;
 };
 
@@ -97,7 +99,7 @@ export async function GET(req: NextRequest) {
     // 1. MANN ürünlerini çek (product_type = 'mann')
     const { data: mannRows } = await supabaseAnon
       .from("products")
-      .select("id, product_name, product_fancy_name, image_url, price, stock, equivalent_id")
+      .select("id, product_name, product_fancy_name, image_url, price, compare_price, stock, equivalent_id")
       .eq("product_type", "mann")
       .in("product_name", normalizedCodes);
 
@@ -111,7 +113,7 @@ export async function GET(req: NextRequest) {
     if (equivalentIds.length > 0) {
       const { data: filtronRows } = await supabaseAnon
         .from("products")
-        .select("id, product_name, image_url, price, stock")
+        .select("id, product_name, image_url, price, compare_price, stock")
         .eq("product_type", "filtron")
         .in("id", equivalentIds);
       filtronById = Object.fromEntries(
@@ -135,18 +137,20 @@ export async function GET(req: NextRequest) {
           const mann = byOriginal[code] ?? null;
           const filtron = mann?.equivalent_id ? filtronById[mann.equivalent_id] ?? null : null;
           return {
-            mannProductId:  mann?.id ?? null,
-            mannCode:       mann?.product_name ?? norm(code),
-            mannFancyName:  mann?.product_fancy_name ?? null,
-            mannImageUrl:   mann?.image_url ?? null,
-            mannPrice:      mann?.price ?? 0,
-            mannStock:      mann?.stock ?? 0,
-            mannFound:      mann !== null,
-            filtronProductId: filtron?.id ?? null,
-            filtronCode:      filtron?.product_name ?? null,
-            filtronImageUrl:  filtron?.image_url ?? null,
-            filtronPrice:     filtron?.price ?? 0,
-            filtronStock:     filtron?.stock ?? 0,
+            mannProductId:    mann?.id ?? null,
+            mannCode:         mann?.product_name ?? norm(code),
+            mannFancyName:    mann?.product_fancy_name ?? null,
+            mannImageUrl:     mann?.image_url ?? null,
+            mannPrice:        mann?.price ?? 0,
+            mannComparePrice: mann?.compare_price ?? null,
+            mannStock:        mann?.stock ?? 0,
+            mannFound:        mann !== null,
+            filtronProductId:    filtron?.id ?? null,
+            filtronCode:         filtron?.product_name ?? null,
+            filtronImageUrl:     filtron?.image_url ?? null,
+            filtronPrice:        filtron?.price ?? 0,
+            filtronComparePrice: filtron?.compare_price ?? null,
+            filtronStock:        filtron?.stock ?? 0,
           };
         });
 
