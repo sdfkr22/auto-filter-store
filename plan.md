@@ -224,25 +224,27 @@ admin_logs (
 - [x] `/hesabim` — dashboard (sipariş / adres / profil / fatura linkleri) + çıkış
 - [x] `/hesabim/fatura-bilgileri` — TC/vergi no, kurumsal toggle
 
-## V2.3 — Ürün Kataloğu
+## V2.3 — Ürün Kataloğu ✅ TAMAMLANDI
 
-- [ ] **Ana Sayfa** (`/`): araç filtresi widget (mevcut korunur) + filtre kartlarına fiyat + "Sepete Ekle" eklenir
-- [ ] **Ürün Listeleme** (`/urunler`): kategori bazlı liste, fiyat, stok durumu, "Sepete Ekle" butonu
-- [ ] **Ürün Detay** (`/urun/[mann_code]`):
-  - Görsel, MANN kodu, Filtron muadili, fiyat, stok
-  - Adet seçici + "Sepete Ekle"
-  - Uyumlu araçlar (mevcut modal mantığı, accordion'a dönüştür)
-  - Breadcrumb
-- [ ] Stok = 0 → "Tükendi" badge, buton pasif
-- [ ] `compare_price` varsa üstü çizili eski fiyat + indirim % rozeti
+- [x] **Ana Sayfa** (`/`): araç filtresi widget (mevcut korunur) + filtre kartlarına fiyat + "Sepete Ekle" eklenir
+- [x] **Ürün Listeleme** (`/urunler`): kategori bazlı liste, fiyat, stok durumu, "Sepete Ekle" butonu
+- [x] **Ürün Detay** (`/urun/[mann_code]`):
+  - [x] Görsel, MANN kodu, Filtron muadili, fiyat, stok
+  - [x] Adet seçici + "Sepete Ekle"
+  - [x] Uyumlu araçlar (mevcut sticky-tablo, accordion gerekirse v3'te)
+  - [x] Breadcrumb (Ana Sayfa › Ürünler › Kategori › Kod)
+- [x] Stok = 0 → "Tükendi" badge, buton pasif
+- [x] `compare_price` varsa üstü çizili eski fiyat + indirim % rozeti
 
-## V2.4 — Sepet
+## V2.4 — Sepet ✅ TAMAMLANDI (cron hariç)
 
-- [ ] Giriş yapmış: `cart_items` tablosu
-- [ ] Misafir: `localStorage` → girişte DB ile merge
-- [ ] `/sepet` — ürün listesi, adet ±, kaldır, ara toplam
-- [ ] Header: sepet ikonu + adet rozeti
-- [ ] Stok rezervasyonu: sepete eklenince `reserved_stock` +1, 30 dk cron expire
+- [x] Giriş yapmış: `cart_items` tablosu (server actions: addToCart / updateCartQuantity / removeFromCart / getCart / mergeGuestCart → `lib/cart/actions.ts`)
+- [x] Misafir: `localStorage` → girişte DB ile merge (`components/cart/CartProvider.tsx` mount effect'inde otomatik merge)
+- [x] `/sepet` — ürün listesi, adet ±, kaldır, ara toplam (`app/(store)/sepet/CartView.tsx`)
+- [x] Header: sepet ikonu + adet rozeti (`components/StoreHeader.tsx`, `useCart().count`)
+- [x] Stok rezervasyonu: sepete eklenince `reserved_stock` +1
+- [ ] **30 dk cron expire** — yapılmadı, V5.5 sağlamlaştırma listesine taşındı
+- [ ] **TODO (prod öncesi):** `reserved_stock` güncellemesi sequential read-modify-write — Postgres function (SECURITY DEFINER) ile atomic yap (race condition var)
 
 ## V2.5 — Ödeme
 
@@ -491,6 +493,9 @@ admin_logs (
 - [ ] İyzico webhook imza doğrulaması
 - [ ] Meta Conversions API imza doğrulaması
 - [ ] Supabase RLS: tüm tablolar için kapsamlı test
+- [ ] **Sepet rezervasyon atomicity** (V2.4'ten devir): `lib/cart/actions.ts`'teki `adjustReservedStock` sequential read-modify-write — Postgres function (SECURITY DEFINER) ile atomic upsert + reserved_stock güncellemesi
+- [ ] **30 dk sepet expire cron** (V2.4'ten devir): 30+ dk önce update edilmiş `cart_items` için `reserved_stock`'u geri ver (Vercel Cron veya Supabase scheduled function)
+- [ ] **Catalog cache invalidation**: admin fiyat/stok değişiminde `revalidateTag("products")` (V2.6 admin paneli içinde) veya Supabase webhook → `/api/revalidate` route
 
 ## V5.6 — Sentry + İzleme
 
