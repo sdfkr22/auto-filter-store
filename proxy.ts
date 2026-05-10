@@ -39,6 +39,20 @@ export async function proxy(request: NextRequest) {
       url.searchParams.set("next", request.nextUrl.pathname);
       return NextResponse.redirect(url);
     }
+
+    if (request.nextUrl.pathname.startsWith("/admin")) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.role !== "admin") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/";
+        return NextResponse.redirect(url);
+      }
+    }
   } catch {
     // Auth hatası sayfayı kırmasın — session olmadan devam et
   }

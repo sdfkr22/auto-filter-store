@@ -260,17 +260,21 @@ admin_logs (
 - [ ] `/odeme/basarili/[orderId]` + `/odeme/hata`
 - [ ] Sipariş onay e-postası → müşteriye (Resend)
 
-## V2.6 — Admin Paneli (Temel)
+## V2.6 — Admin Paneli (Temel) ✅ ÜRÜN YÖNETİMİ TAMAMLANDI (sipariş yönetimi V2.5 sonrası)
 
-- [ ] `/admin` — sadece `role = 'admin'` (middleware + RLS)
-- [ ] **Dashboard**: bekleyen siparişler, havale bekleyenler, düşük stok uyarısı
-- [ ] **Ürün Yönetimi** (`/admin/urunler`): fiyat ve stok gir, aktif/pasif toggle
-- [ ] **Sipariş Yönetimi** (`/admin/siparisler`):
-  - Durum filtreleme
+- [x] `/admin` — `proxy.ts` `profiles.role = 'admin'` kontrolü + `lib/auth/admin.ts` `requireAdmin()` helper. Service role client (`createAdminClient`) ile yazımlar; ayrı admin RLS policy yazılmadı (gerekmiyor).
+- [x] **Dashboard** (`app/(admin)/admin/page.tsx`): toplam ürün, fiyatsız, stoksuz, pasif kartları + hızlı işlemler. Bekleyen sipariş/havale kartları V2.5 sonrası eklenecek.
+- [x] **Ürün Yönetimi** (`/admin/urunler`):
+  - Arama (kod/isim ilike), kategori dropdown, "fiyatsız/stoksuz/pasif" filtreleri, sayfalama (50/sayfa).
+  - **Inline edit:** fiyat & stok input'ları blur'da kaydeder; aktif/pasif toggle butonu. Server action: `updateProduct` (`lib/admin/product-actions.ts`).
+  - Detay sayfası `/admin/urunler/[id]`: tüm alanlar (price, compare_price, stock, label, image_url, description TR/EN, meta TR/EN, active, featured). `reserved_stock` readonly.
+  - Cache invalidation: her güncelleme `revalidateTag("products", "max")` + `revalidatePath("/urunler" | "/" | "/urun/[name]")` — V5.5'teki cache invalidation TODO'sunu da kapatır.
+- [ ] **Sipariş Yönetimi** (`/admin/siparisler`) — **iskelet sayfası mevcut** (durum filtre chip'leri + boş state); aşağıdakiler V2.5 sonrası dolacak:
   - Durum güncelle (pending → paid → shipped → delivered)
   - Havale onayı: referans no eşleştir → `paid`
   - Kargo takip numarası gir
-- [ ] Kargo takip no girilince müşteriye e-posta bildirimi
+  - Detay sayfası
+- [ ] Kargo takip no girilince müşteriye e-posta bildirimi (V2.5 sonrası)
 
 ## V2.7 — Temel Yasal Sayfalar
 
@@ -495,7 +499,7 @@ admin_logs (
 - [ ] Supabase RLS: tüm tablolar için kapsamlı test
 - [ ] **Sepet rezervasyon atomicity** (V2.4'ten devir): `lib/cart/actions.ts`'teki `adjustReservedStock` sequential read-modify-write — Postgres function (SECURITY DEFINER) ile atomic upsert + reserved_stock güncellemesi
 - [ ] **30 dk sepet expire cron** (V2.4'ten devir): 30+ dk önce update edilmiş `cart_items` için `reserved_stock`'u geri ver (Vercel Cron veya Supabase scheduled function)
-- [ ] **Catalog cache invalidation**: admin fiyat/stok değişiminde `revalidateTag("products")` (V2.6 admin paneli içinde) veya Supabase webhook → `/api/revalidate` route
+- [x] **Catalog cache invalidation**: V2.6'da çözüldü — admin product-actions her update'te `revalidateTag("products", "max")` + ilgili `revalidatePath`'ler çağırıyor. (Supabase webhook'a şimdilik gerek yok; admin UI dışından yazım yapılırsa o zaman düşünülür.)
 
 ## V5.6 — Sentry + İzleme
 
