@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 import { signOut } from "@/app/hesabim/actions";
+import Logo from "@/components/Logo";
 
 export type StoreHeaderUser = {
   displayName: string | null;
@@ -92,8 +93,8 @@ export default function StoreHeader({
 
   return (
     <header style={s.header}>
-      <Link href="/" style={s.logo}>
-        auto<span style={s.logoDot}>-filter</span>
+      <Link href="/" style={s.logo} aria-label="otofiltrem.com">
+        <Logo height={38} />
       </Link>
       <nav style={s.nav}>
         {showProductsLink && (

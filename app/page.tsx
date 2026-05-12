@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import FilterWidget from "@/components/FilterWidget";
 import StoreHeaderShell from "@/components/StoreHeaderShell";
+import { LogoMark } from "@/components/Logo";
 
 export const metadata: Metadata = {
   title: "auto-filter | MANN-FILTER & FILTRON Filtre Mağazası",
@@ -26,6 +27,9 @@ export default async function HomePage() {
 
       <main style={s.main}>
         <div style={s.hero}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            <LogoMark size={72} />
+          </div>
           <h1 style={s.h1}>
             Aracınıza Uyumlu
             <div style={s.brandRow}>

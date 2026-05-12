@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>otofiltrem.com — Logo Önizleme</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --mann-yellow:#FFED00;
+    --mann-green:#00A758;
+    --ink:#0a0a0a;
+    --paper:#f6f5ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{font-family:'Helvetica Neue',Arial,sans-serif;background:var(--ink);color:#e8e8e8;-webkit-font-smoothing:antialiased}
+  body{padding:48px 32px 96px;max-width:1240px;margin:0 auto}
+  header{margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid #1f1f1f;display:flex;align-items:baseline;gap:24px;flex-wrap:wrap}
+  header h1{font-size:28px;font-weight:900;letter-spacing:-1px}
+  header .crumb{font-size:11px;letter-spacing:3px;color:#666;text-transform:uppercase}
+  header .crumb b{color:var(--mann-green)}
+  header .tag{margin-left:auto;font-size:11px;color:#888;letter-spacing:2px}
+
+  .row{margin-bottom:48px}
+  .row-head{display:flex;align-items:baseline;gap:16px;margin-bottom:18px}
+  .row-head .num{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--mann-yellow);letter-spacing:2px}
+  .row-head h2{font-size:16px;font-weight:700;letter-spacing:-.2px}
+  .row-head p{color:#888;font-size:12px;margin-left:auto;max-width:520px;text-align:right;line-height:1.55}
+
+  .grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:14px}
+  @media (max-width:880px){ .grid{grid-template-columns:1fr} .row-head p{text-align:left;max-width:none} .row-head{flex-direction:column;align-items:flex-start;gap:8px}}
+
+  .swatch{border-radius:10px;padding:32px 22px;display:flex;align-items:center;justify-content:center;min-height:140px;position:relative;overflow:hidden}
+  .swatch::after{content:attr(data-label);position:absolute;top:10px;left:14px;font-size:9px;letter-spacing:2.4px;color:#999;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+  .s-dark{background:#0d0d0d;border:1px solid #1f1f1f;color:#e8e8e8}
+  .s-paper{background:var(--paper);color:#111}
+  .s-paper::after{color:#888}
+  .s-yellow{background:var(--mann-yellow);color:#0a0a0a}
+  .s-yellow::after{color:#0a0a0a;opacity:.5}
+
+  .swatch img{max-width:100%;height:auto;color:inherit}
+
+  .section-title{font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:3px;color:#666;margin:48px 0 18px;padding-bottom:8px;border-bottom:1px dashed #222}
+
+  footer{margin-top:64px;padding-top:24px;border-top:1px solid #1f1f1f;font-size:11px;color:#555;letter-spacing:2px;text-align:center}
+</style>
+</head>
+<body>
+  <header>
+    <span class="crumb"><b>otofiltrem</b> / logo studies</span>
+    <h1>Stencil yönü &mdash; 3 yeni varyant</h1>
+    <span class="tag">SARI #FFED00 &nbsp;·&nbsp; YEŞİL #00A758</span>
+  </header>
+
+  <div class="section-title">// V2 STENCIL — ORİJİNAL</div>
+  <section class="row">
+    <div class="row-head">
+      <span class="num">02</span>
+      <h2>Stencil / Part No.</h2>
+      <p>Önceki seçilen yön &mdash; referans.</p>
+    </div>
+    <div class="grid">
+      <div class="swatch s-dark" data-label="koyu"><img src="logo-2.svg" alt="logo 2 koyu"/></div>
+      <div class="swatch s-paper" data-label="kağıt"><img src="logo-2.svg" alt="logo 2 kağıt"/></div>
+      <div class="swatch s-yellow" data-label="mann sarı"><img src="logo-2.svg" alt="logo 2 sarı"/></div>
+    </div>
+  </section>
+
+  <div class="section-title">// V2 — YENİ 3 VARYANT</div>
+
+  <section class="row">
+    <div class="row-head">
+      <span class="num">02·A</span>
+      <h2>Pleat Bars &mdash; dikey filtre kıvrımları</h2>
+      <p>Dikey çubuklar filtre pleat'lerini temsil eder; biri sarı ile öne çıkar. Yalnız wordmark.</p>
+    </div>
+    <div class="grid">
+      <div class="swatch s-dark" data-label="koyu"><img src="logo-2a.svg" alt="logo 2a koyu"/></div>
+      <div class="swatch s-paper" data-label="kağıt"><img src="logo-2a.svg" alt="logo 2a kağıt"/></div>
+      <div class="swatch s-yellow" data-label="mann sarı"><img src="logo-2a.svg" alt="logo 2a sarı"/></div>
+    </div>
+  </section>
+
+  <section class="row">
+    <div class="row-head">
+      <span class="num">02·B</span>
+      <h2>Hex Slash &mdash; altıgen + akış işareti</h2>
+      <p>Altıgen form (mekanik / mühendislik) içinde sarı diyagonal &mdash; akış / filtreden geçiş.</p>
+    </div>
+    <div class="grid">
+      <div class="swatch s-dark" data-label="koyu"><img src="logo-2b.svg" alt="logo 2b koyu"/></div>
+      <div class="swatch s-paper" data-label="kağıt"><img src="logo-2b.svg" alt="logo 2b kağıt"/></div>
+      <div class="swatch s-yellow" data-label="mann sarı"><img src="logo-2b.svg" alt="logo 2b sarı"/></div>
+    </div>
+  </section>
+
+  <section class="row">
+    <div class="row-head">
+      <span class="num">02·C</span>
+      <h2>Cartridge Brackets &mdash; köşeli paranteziçi kartuş</h2>
+      <p>Yeşil parantezler arasında sarı dikdörtgen kartuş &mdash; filtre kasası içinde eleman.</p>
+    </div>
+    <div class="grid">
+      <div class="swatch s-dark" data-label="koyu"><img src="logo-2c.svg" alt="logo 2c koyu"/></div>
+      <div class="swatch s-paper" data-label="kağıt"><img src="logo-2c.svg" alt="logo 2c kağıt"/></div>
+      <div class="swatch s-yellow" data-label="mann sarı"><img src="logo-2c.svg" alt="logo 2c sarı"/></div>
+    </div>
+  </section>
+
+  <footer>otofiltrem.com &nbsp;·&nbsp; logo studies v2 &nbsp;·&nbsp; <span style="color:var(--mann-green)">dosyalar /public/logos/ altında</span></footer>
+</body>
+</html>
