@@ -10,12 +10,19 @@ export type StoreHeaderUser = {
 
 const s = {
   header: {
-    borderBottom: "1px solid #141414",
     padding: "14px 28px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 16,
+    position: "sticky" as const,
+    top: 0,
+    zIndex: 50,
+    backgroundColor: "#090909",
+    backgroundImage: "linear-gradient(90deg, #00A758, #FFED00)",
+    backgroundSize: "100% 0.5px",
+    backgroundPosition: "bottom",
+    backgroundRepeat: "no-repeat",
   } as const,
   logo: { fontSize: 20, fontWeight: 700, color: "#e5e5e5", textDecoration: "none" } as const,
   logoDot: { color: "#8fa4c0" } as const,

@@ -16,7 +16,7 @@ const s = {
   mannBadge: { display: "inline-block", background: "#00A758", color: "#FFED00", padding: "0 3px", borderRadius: 3, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.1 } as const,
   filtronBadge: { display: "inline-block", background: "#ffffff", color: "#000000", padding: "0 3px", borderRadius: 3, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.1 } as const,
   sub: { fontSize: 13, color: "#666", lineHeight: 1.5, margin: "10px auto 0", whiteSpace: "nowrap" as const } as const,
-  footer: { borderTop: "1px solid #141414", padding: "24px 28px", textAlign: "center" as const, fontSize: 12, color: "#444" },
+  footer: { padding: "24px 28px", textAlign: "center" as const, fontSize: 12, color: "#444", backgroundImage: "linear-gradient(90deg, #00A758, #FFED00)", backgroundSize: "100% 0.5px", backgroundPosition: "top", backgroundRepeat: "no-repeat" },
 };
 
 export default async function HomePage() {
