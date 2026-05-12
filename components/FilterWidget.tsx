@@ -369,11 +369,20 @@ export default function FilterWidget() {
   }, [engine]);
 
   const selStyle: React.CSSProperties = {
-    width: "100%", background: "#1a1a1a", border: "1px solid #2a2a2a",
-    borderRadius: 8, padding: "14px 36px 14px 16px", color: "#e5e5e5",
+    width: "100%", background: "#1a1a1a", border: "none",
+    borderRadius: 7, padding: "14px 36px 14px 16px", color: "#e5e5e5",
     fontSize: 15, outline: "none", cursor: "pointer", appearance: "none",
     backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6l3.5 4 3.5-4z'/%3E%3C/svg%3E\")",
     backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center",
+    display: "block",
+  };
+  const selWrap: React.CSSProperties = {
+    background: "linear-gradient(135deg, #00A758, #FFED00)",
+    borderRadius: 8, padding: "0.5px", display: "block",
+  };
+  const selWrapDisabled: React.CSSProperties = {
+    background: "#2a2a2a",
+    borderRadius: 8, padding: "0.5px", display: "block",
   };
 
   return (
@@ -389,14 +398,36 @@ export default function FilterWidget() {
         ].map(({ label, value, onChange, options, ph, disabled }) => (
           <div key={label}>
             <div style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{label}</div>
-            <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}
-              style={{ ...selStyle, background: disabled ? "#0e0e0e" : "#1a1a1a", color: disabled ? "#333" : "#e5e5e5", cursor: disabled ? "not-allowed" : "pointer" }}>
-              <option value="">{ph}</option>
-              {options.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
+            <div style={disabled ? selWrapDisabled : selWrap}>
+              <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}
+                style={{ ...selStyle, background: disabled ? "#0e0e0e" : "#1a1a1a", color: disabled ? "#333" : "#e5e5e5", cursor: disabled ? "not-allowed" : "pointer" }}>
+                <option value="">{ph}</option>
+                {options.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
           </div>
         ))}
       </div>
+
+      {(make || model || engine) && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <button
+            type="button"
+            onClick={() => {
+              setMake(""); setModel(""); setEngine("");
+              setModels([]); setEngines([]); setResults(null);
+              try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
+            }}
+            style={{
+              fontSize: 12, color: "#aaa", background: "transparent",
+              border: "1px solid #2a2a2a", borderRadius: 6,
+              padding: "6px 14px", cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Seçimlerimi Temizle
+          </button>
+        </div>
+      )}
 
       {loading && (
         <div style={{ textAlign: "center", padding: "12px 0", fontSize: 12, color: "#555" }}>Aranıyor…</div>
