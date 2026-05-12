@@ -43,7 +43,7 @@ export default async function HomePage() {
       </main>
 
       <footer style={s.footer}>
-        © {new Date().getFullYear()} auto-filter — MANN-FILTER & FILTRON yetkili satıcısı
+        © {new Date().getFullYear()} auto-filter — MANN-FILTER & FILTRON
       </footer>
     </div>
   );
