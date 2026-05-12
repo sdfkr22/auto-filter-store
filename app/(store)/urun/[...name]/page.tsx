@@ -6,6 +6,7 @@ import { getCompatibleVehicles } from "@/lib/mann-data";
 import { supabaseAnon } from "@/lib/supabase/anon";
 import ProductImage from "./ProductImage";
 import AddToCart from "./AddToCart";
+import BackButton from "./BackButton";
 import StoreHeaderShell from "@/components/StoreHeaderShell";
 
 const MANN_ACCENT   = "#4a8a5a";
@@ -100,19 +101,22 @@ export default async function UrunDetayPage({
           const crumbLink: React.CSSProperties = { color: "#666", textDecoration: "none" };
           const crumbSep:  React.CSSProperties = { color: "#333", margin: "0 6px" };
           return (
-            <nav aria-label="Breadcrumb" style={{ fontSize: 12, marginBottom: 20, display: "flex", alignItems: "center", flexWrap: "wrap" }}>
-              <Link href="/" style={crumbLink}>Ana Sayfa</Link>
-              <span style={crumbSep}>›</span>
-              <Link href="/urunler" style={crumbLink}>Ürünler</Link>
-              {cat && (
-                <>
-                  <span style={crumbSep}>›</span>
-                  <Link href={`/urunler?kategori=${cat.slug}`} style={crumbLink}>{cat.name}</Link>
-                </>
-              )}
-              <span style={crumbSep}>›</span>
-              <span style={{ color: "#aaa", fontFamily: "monospace" }}>{product.product_name}</span>
-            </nav>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+              <nav aria-label="Breadcrumb" style={{ fontSize: 12, display: "flex", alignItems: "center", flexWrap: "wrap" }}>
+                <Link href="/" style={crumbLink}>Ana Sayfa</Link>
+                <span style={crumbSep}>›</span>
+                <Link href="/urunler" style={crumbLink}>Ürünler</Link>
+                {cat && (
+                  <>
+                    <span style={crumbSep}>›</span>
+                    <Link href={`/urunler?kategori=${cat.slug}`} style={crumbLink}>{cat.name}</Link>
+                  </>
+                )}
+                <span style={crumbSep}>›</span>
+                <span style={{ color: "#aaa", fontFamily: "monospace" }}>{product.product_name}</span>
+              </nav>
+              <BackButton />
+            </div>
           );
         })()}
 

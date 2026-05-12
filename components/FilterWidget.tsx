@@ -6,14 +6,14 @@ import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 
 const MANN = {
-  bg: "linear-gradient(135deg, #141a08, #121a0a)",
-  border: "#2a3a15",
-  borderHover: "#78a22f",
-  badge: "#78a22f18",
-  badgeBorder: "#78a22f25",
-  dot: "#78a22f",
-  text: "#78a22f",
-  shadow: "rgba(120,162,47,0.25)",
+  bg: "linear-gradient(135deg, #08160d, #0a1a10)",
+  border: "#16402a",
+  borderHover: "#00A758",
+  badge: "#00A75818",
+  badgeBorder: "#00A75825",
+  dot: "#00A758",
+  text: "#00A758",
+  shadow: "rgba(0,167,88,0.25)",
 };
 const FILTRON = {
   bg: "linear-gradient(135deg, #0a1520, #0e1a2a)",
@@ -96,7 +96,6 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
       position: "relative", overflow: "hidden",
     }}>
       <div style={{ position: "absolute", top: 0, right: 0, background: MANN.dot, borderRadius: "0 8px 0 12px", padding: "6px 10px", fontSize: 16, lineHeight: 1, color: "#fff" }}>{icon}</div>
-      <div style={{ position: "absolute", bottom: 4, right: 8, fontSize: 24, opacity: 0.06, fontWeight: 900, color: "#fff", pointerEvents: "none", userSelect: "none" }}>M</div>
 
       <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 6, background: MANN.badge, padding: "2px 8px 2px 6px", borderRadius: 4, border: `1px solid ${MANN.badgeBorder}` }}>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: MANN.dot }} />
@@ -127,27 +126,34 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
               ? `₺${item.mannPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
               : "Fiyat sorunuz"}
           </div>
-          {item.mannProductId && (
-            inStock && item.mannPrice > 0 ? (
-              <button
-                type="button"
-                onClick={handleAdd}
-                disabled={pending}
-                style={{
-                  marginTop: 8, width: "100%",
-                  background: done ? "#52c07a" : pending ? "#5a6a80" : MANN.dot,
-                  color: "#fff",
-                  border: "none", borderRadius: 5,
-                  padding: "6px 8px", fontSize: 11, fontWeight: 700,
-                  cursor: pending ? "wait" : "pointer", fontFamily: "inherit",
-                }}
-              >
-                {done ? "Eklendi ✓" : pending ? "Ekleniyor…" : "Sepete Ekle"}
-              </button>
-            ) : (
-              <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detayları gör →</div>
-            )
-          )}
+          {item.mannProductId && (() => {
+            const canBuy = inStock && item.mannPrice > 0;
+            const label = canBuy
+              ? (done ? "Eklendi ✓" : pending ? "Ekleniyor…" : "Sepete Ekle")
+              : (!inStock ? "Tükendi" : "Fiyat sorunuz");
+            return (
+              <>
+                <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detayları gör →</div>
+                <button
+                  type="button"
+                  onClick={canBuy ? handleAdd : undefined}
+                  disabled={!canBuy || pending}
+                  style={{
+                    marginTop: 8, width: "100%",
+                    background: !canBuy ? "#161616" : done ? "#52c07a" : pending ? "#5a6a80" : MANN.dot,
+                    color: !canBuy ? "#666" : "#fff",
+                    border: !canBuy ? "1px solid #222" : "none",
+                    borderRadius: 5,
+                    padding: "6px 8px", fontSize: 11, fontWeight: 700,
+                    cursor: !canBuy ? "not-allowed" : pending ? "wait" : "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {label}
+                </button>
+              </>
+            );
+          })()}
         </>
       ) : (
         <div style={{ fontSize: 10, color: "#444", marginTop: 4 }}>Sistemde kayıtlı değil</div>
@@ -210,7 +216,6 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
       position: "relative", overflow: "hidden",
     }}>
       <div style={{ position: "absolute", top: 0, right: 0, background: FILTRON.dot, borderRadius: "0 8px 0 12px", padding: "6px 10px", fontSize: 16, lineHeight: 1, color: "#fff" }}>{icon}</div>
-      <div style={{ position: "absolute", bottom: 4, right: 8, fontSize: 24, opacity: 0.06, fontWeight: 900, color: "#fff", pointerEvents: "none", userSelect: "none" }}>F</div>
 
       <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 6, background: FILTRON.badge, padding: "2px 8px 2px 6px", borderRadius: 4, border: `1px solid ${FILTRON.badgeBorder}` }}>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: FILTRON.dot }} />
@@ -241,25 +246,34 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
               ? `₺${item.filtronPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`
               : "Fiyat sorunuz"}
           </div>
-          {inStock && item.filtronPrice > 0 ? (
-            <button
-              type="button"
-              onClick={handleAdd}
-              disabled={pending}
-              style={{
-                marginTop: 8, width: "100%",
-                background: done ? "#52c07a" : pending ? "#5a6a80" : FILTRON.dot,
-                color: "#fff",
-                border: "none", borderRadius: 5,
-                padding: "6px 8px", fontSize: 11, fontWeight: 700,
-                cursor: pending ? "wait" : "pointer", fontFamily: "inherit",
-              }}
-            >
-              {done ? "Eklendi ✓" : pending ? "Ekleniyor…" : "Sepete Ekle"}
-            </button>
-          ) : (
-            <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detayları gör →</div>
-          )}
+          {(() => {
+            const canBuy = inStock && item.filtronPrice > 0;
+            const label = canBuy
+              ? (done ? "Eklendi ✓" : pending ? "Ekleniyor…" : "Sepete Ekle")
+              : (!inStock ? "Tükendi" : "Fiyat sorunuz");
+            return (
+              <>
+                <div style={{ fontSize: 10, color: "#666", marginTop: 6 }}>Detayları gör →</div>
+                <button
+                  type="button"
+                  onClick={canBuy ? handleAdd : undefined}
+                  disabled={!canBuy || pending}
+                  style={{
+                    marginTop: 8, width: "100%",
+                    background: !canBuy ? "#161616" : done ? "#52c07a" : pending ? "#5a6a80" : FILTRON.dot,
+                    color: !canBuy ? "#666" : "#fff",
+                    border: !canBuy ? "1px solid #222" : "none",
+                    borderRadius: 5,
+                    padding: "6px 8px", fontSize: 11, fontWeight: 700,
+                    cursor: !canBuy ? "not-allowed" : pending ? "wait" : "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {label}
+                </button>
+              </>
+            );
+          })()}
         </>
       ) : (
         <div style={{ fontSize: 10, color: "#444", marginTop: 4 }}>Sistemde kayıtlı değil</div>
@@ -287,6 +301,8 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
   );
 }
 
+const STORAGE_KEY = "filterWidget:selection";
+
 export default function FilterWidget() {
   const [makes,   setMakes]   = useState<string[]>([]);
   const [models,  setModels]  = useState<string[]>([]);
@@ -299,20 +315,41 @@ export default function FilterWidget() {
 
   useEffect(() => {
     fetchJson<string[]>("/api/filters?type=makes").then(setMakes).catch(console.error);
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const v = JSON.parse(saved) as { make?: string; model?: string; engine?: string };
+        if (v.make)   setMake(v.make);
+        if (v.model)  setModel(v.model);
+        if (v.engine) setEngine(v.engine);
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
-    setModel(""); setEngine(""); setModels([]); setEngines([]); setResults(null);
-    if (!make) return;
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ make, model, engine }));
+    } catch {}
+  }, [make, model, engine]);
+
+  useEffect(() => {
+    setModels([]);
+    if (!make) { setResults(null); return; }
+    let cancelled = false;
     fetchJson<string[]>(`/api/filters?type=models&make=${encodeURIComponent(make)}`)
-      .then(setModels).catch(console.error);
+      .then((d) => { if (!cancelled) setModels(d); })
+      .catch(console.error);
+    return () => { cancelled = true; };
   }, [make]);
 
   useEffect(() => {
-    setEngine(""); setEngines([]); setResults(null);
-    if (!model) return;
+    setEngines([]);
+    if (!model) { setResults(null); return; }
+    let cancelled = false;
     fetchJson<string[]>(`/api/filters?type=engines&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`)
-      .then(setEngines).catch(console.error);
+      .then((d) => { if (!cancelled) setEngines(d); })
+      .catch(console.error);
+    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model]);
 
@@ -320,12 +357,14 @@ export default function FilterWidget() {
     if (!engine) return;
     setLoading(true);
     setResults(null);
+    let cancelled = false;
     fetchJson<Results | null>(
       `/api/filters?type=results&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&engine=${encodeURIComponent(engine)}`
     )
-      .then((data) => setResults(data))
+      .then((data) => { if (!cancelled) setResults(data); })
       .catch(console.error)
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine]);
 
