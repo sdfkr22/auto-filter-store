@@ -33,7 +33,7 @@ export default function CartView() {
           href="/urunler"
           style={{
             display: "inline-block",
-            background: "#8fa4c0", color: "#090909",
+            background: "#FFED00", color: "#0a0a0a",
             padding: "10px 22px", borderRadius: 8,
             fontSize: 13, fontWeight: 700, textDecoration: "none",
           }}
@@ -79,7 +79,7 @@ export default function CartView() {
             href="/odeme"
             style={{
               display: "block", marginTop: 18, textAlign: "center",
-              background: "#8fa4c0", color: "#090909",
+              background: "#FFED00", color: "#0a0a0a",
               padding: "11px", borderRadius: 8,
               fontSize: 14, fontWeight: 700, textDecoration: "none",
             }}
@@ -92,7 +92,7 @@ export default function CartView() {
               href="/giris?next=/odeme"
               style={{
                 display: "block", marginTop: 18, textAlign: "center",
-                background: "#8fa4c0", color: "#090909",
+                background: "#FFED00", color: "#0a0a0a",
                 padding: "11px", borderRadius: 8,
                 fontSize: 14, fontWeight: 700, textDecoration: "none",
               }}

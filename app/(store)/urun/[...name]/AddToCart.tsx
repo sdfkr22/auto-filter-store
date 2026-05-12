@@ -113,7 +113,7 @@ export default function AddToCart({
           disabled={pending}
           style={{
             flex: 1,
-            background: pending ? "#5a6a80" : "#8fa4c0", color: "#090909",
+            background: pending ? "#bfb000" : "#FFED00", color: "#0a0a0a",
             border: "none", borderRadius: 8,
             padding: "11px", fontSize: 14, fontWeight: 700,
             cursor: pending ? "wait" : "pointer",

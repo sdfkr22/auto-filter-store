@@ -55,9 +55,9 @@ const s = {
   tab: (active: boolean) => ({
     padding: "6px 18px", borderRadius: 20, fontSize: 13, cursor: "pointer",
     border: "1px solid",
-    borderColor: active ? "#8fa4c0" : "#222",
-    background:  active ? "#8fa4c018" : "transparent",
-    color:       active ? "#8fa4c0" : "#555",
+    borderColor: active ? "#FFED00" : "#222",
+    background:  active ? "#FFED0018" : "transparent",
+    color:       active ? "#FFED00" : "#555",
     textDecoration: "none",
     transition: "all 0.15s",
   }),

@@ -58,8 +58,8 @@ export default function AddToCartButton({
       disabled={pending}
       style={{
         ...baseStyle,
-        background: done ? "#52c07a" : pending ? "#5a6a80" : "#8fa4c0",
-        color: "#090909",
+        background: done ? "#52c07a" : pending ? "#bfb000" : "#FFED00",
+        color: "#0a0a0a",
         cursor: pending ? "wait" : "pointer",
       }}
     >

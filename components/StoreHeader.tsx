@@ -31,7 +31,7 @@ const s = {
   navLink: { fontSize: 13, color: "#888", textDecoration: "none", padding: "6px 14px", borderRadius: 6 } as const,
   navLinkPrimary: {
     fontSize: 13, color: "#090909", textDecoration: "none",
-    padding: "6px 16px", borderRadius: 6, background: "#8fa4c0", fontWeight: 600,
+    padding: "6px 16px", borderRadius: 6, background: "#FFED00", fontWeight: 600,
   } as const,
   greeting: { fontSize: 13, color: "#aaa", marginRight: 4 } as const,
   greetingName: { color: "#e5e5e5", fontWeight: 600 } as const,
@@ -61,7 +61,7 @@ const s = {
     height: 18,
     padding: "0 5px",
     borderRadius: 9,
-    background: "#8fa4c0",
+    background: "#FFED00",
     color: "#090909",
     fontSize: 10,
     fontWeight: 700,
