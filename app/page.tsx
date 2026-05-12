@@ -8,11 +8,14 @@ export const metadata: Metadata = {
 
 const s = {
   wrap: { minHeight: "100vh", background: "#090909", color: "#e5e5e5", fontFamily: "system-ui, sans-serif" } as const,
-  main: { maxWidth: 820, margin: "0 auto", padding: "60px 24px 80px" } as const,
+  main: { maxWidth: 1000, margin: "0 auto", padding: "60px 24px 80px" } as const,
   hero: { textAlign: "center" as const, marginBottom: 48 },
-  h1: { fontSize: 34, fontWeight: 700, marginBottom: 12, lineHeight: 1.2 } as const,
-  h1Span: { color: "#8fa4c0" } as const,
-  sub: { fontSize: 15, color: "#666", lineHeight: 1.6, maxWidth: 440, margin: "0 auto" } as const,
+  h1: { fontSize: 34, fontWeight: 700, marginBottom: 10, lineHeight: 1.2 } as const,
+  brandRow: { display: "flex", justifyContent: "center", alignItems: "center", flexWrap: "wrap" as const, gap: 8, marginTop: 6 } as const,
+  ampersand: { color: "#666", fontWeight: 500 } as const,
+  mannBadge: { display: "inline-block", background: "#00A758", color: "#FFED00", padding: "0 3px", borderRadius: 3, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.1 } as const,
+  filtronBadge: { display: "inline-block", background: "#ffffff", color: "#000000", padding: "0 3px", borderRadius: 3, fontWeight: 800, letterSpacing: 0.3, lineHeight: 1.1 } as const,
+  sub: { fontSize: 13, color: "#666", lineHeight: 1.5, margin: "10px auto 0", whiteSpace: "nowrap" as const } as const,
   footer: { borderTop: "1px solid #141414", padding: "24px 28px", textAlign: "center" as const, fontSize: 12, color: "#444" },
 };
 
@@ -24,8 +27,12 @@ export default async function HomePage() {
       <main style={s.main}>
         <div style={s.hero}>
           <h1 style={s.h1}>
-            Aracınıza Uygun<br />
-            <span style={s.h1Span}>MANN-FILTER & FILTRON</span>
+            Aracınıza Uyumlu
+            <div style={s.brandRow}>
+              <span style={s.mannBadge}>MANN-FILTER</span>
+              <span style={s.ampersand}>&</span>
+              <span style={s.filtronBadge}>FILTRON</span>
+            </div>
           </h1>
           <p style={s.sub}>
             Marka, model ve motor bilgisiyle saniyeler içinde doğru filtreyi bulun.

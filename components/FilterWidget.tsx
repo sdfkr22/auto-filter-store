@@ -331,25 +331,25 @@ export default function FilterWidget() {
 
   const selStyle: React.CSSProperties = {
     width: "100%", background: "#1a1a1a", border: "1px solid #2a2a2a",
-    borderRadius: 6, padding: "9px 26px 9px 11px", color: "#e5e5e5",
-    fontSize: 13, outline: "none", cursor: "pointer", appearance: "none",
-    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23555' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6l3.5 4 3.5-4z'/%3E%3C/svg%3E\")",
-    backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center",
+    borderRadius: 8, padding: "14px 36px 14px 16px", color: "#e5e5e5",
+    fontSize: 15, outline: "none", cursor: "pointer", appearance: "none",
+    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6l3.5 4 3.5-4z'/%3E%3C/svg%3E\")",
+    backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center",
   };
 
   return (
-    <div style={{ background: "#131313", border: "1px solid #222", borderRadius: 12, padding: 22 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 3, color: "#e5e5e5" }}>Araç Bilgilerini Seçin</h3>
-      <p style={{ color: "#555", fontSize: 11, marginBottom: 16 }}>Marka, model ve motor seçerek uyumlu filtreleri görüntüleyin</p>
+    <div style={{ background: "#131313", border: "1px solid #222", borderRadius: 14, padding: 32 }}>
+      <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, color: "#e5e5e5" }}>Araç Bilgilerini Seçin</h3>
+      <p style={{ color: "#888", fontSize: 14, marginBottom: 24 }}>Marka, model ve motor seçerek uyumlu filtreleri görüntüleyin</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 20 }}>
         {[
           { label: "MARKA",       value: make,   onChange: (v: string) => { setMake(v); setModel(""); setEngine(""); }, options: makes,   ph: "Marka seçin...",             disabled: false  },
           { label: "MODEL",       value: model,  onChange: (v: string) => { setModel(v); setEngine(""); },             options: models,  ph: make  ? "Model seçin..."   : "Önce marka seçin", disabled: !make  },
           { label: "MOTOR / GÜÇ", value: engine, onChange: setEngine,                                                 options: engines, ph: model ? "Motor seçin..."   : "Önce model seçin", disabled: !model },
         ].map(({ label, value, onChange, options, ph, disabled }) => (
           <div key={label}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>{label}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{label}</div>
             <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}
               style={{ ...selStyle, background: disabled ? "#0e0e0e" : "#1a1a1a", color: disabled ? "#333" : "#e5e5e5", cursor: disabled ? "not-allowed" : "pointer" }}>
               <option value="">{ph}</option>
