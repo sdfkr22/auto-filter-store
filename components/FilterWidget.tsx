@@ -140,8 +140,8 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
                   disabled={!canBuy || pending}
                   style={{
                     marginTop: 6, width: "100%",
-                    background: !canBuy ? "#161616" : done ? "#52c07a" : pending ? "#bfb000" : "#FFED00",
-                    color: !canBuy ? "#666" : "#0a0a0a",
+                    background: !canBuy ? "#161616" : done ? "#52c07a" : pending ? "#5a6a80" : MANN.dot,
+                    color: !canBuy ? "#666" : "#fff",
                     border: !canBuy ? "1px solid #222" : "none",
                     borderRadius: 4,
                     padding: "5px 8px", fontSize: 11, fontWeight: 600,
@@ -260,8 +260,8 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
                   disabled={!canBuy || pending}
                   style={{
                     marginTop: 6, width: "100%",
-                    background: !canBuy ? "#161616" : done ? "#52c07a" : pending ? "#bfb000" : "#FFED00",
-                    color: !canBuy ? "#666" : "#0a0a0a",
+                    background: !canBuy ? "#161616" : done ? "#52c07a" : pending ? "#5a6a80" : FILTRON.dot,
+                    color: !canBuy ? "#666" : "#fff",
                     border: !canBuy ? "1px solid #222" : "none",
                     borderRadius: 4,
                     padding: "5px 8px", fontSize: 11, fontWeight: 600,
