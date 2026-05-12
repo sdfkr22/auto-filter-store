@@ -338,7 +338,7 @@ export default function FilterWidget() {
   };
 
   return (
-    <div style={{ background: "#131313", border: "1px solid #222", borderRadius: 14, padding: 32 }}>
+    <div style={{ background: "linear-gradient(#131313, #131313) padding-box, linear-gradient(135deg, #00A758, #FFED00) border-box", border: "1px solid transparent", borderRadius: 14, padding: 32 }}>
       <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, color: "#e5e5e5" }}>Araç Bilgilerini Seçin</h3>
       <p style={{ color: "#888", fontSize: 14, marginBottom: 24 }}>Marka, model ve motor seçerek uyumlu filtreleri görüntüleyin</p>
 
