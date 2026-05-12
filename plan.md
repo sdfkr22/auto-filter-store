@@ -248,17 +248,39 @@ admin_logs (
 
 ## V2.5 — Ödeme
 
-- [ ] `/odeme` — 3 adım: teslimat adresi → kargo yöntemi → ödeme
-- [ ] Kargo: `shipping_methods` tablosundan, ücretsiz kargo eşiği gösterimi
-- [ ] **Kredi/Banka Kartı**: İyzico iframe + 3D Secure
-- [ ] **Havale/EFT**: banka bilgileri gösterilir, referans no girilir → `awaiting_payment`
-- [ ] Taksit seçenekleri: İyzico installment API
-- [ ] Zorunlu onaylar:
-  - [ ] Mesafeli Satış Sözleşmesi checkbox ✓ (Türk hukuku — zorunlu)
-  - [ ] Ön Bilgilendirme Formu checkbox ✓ (Türk hukuku — zorunlu)
-- [ ] Başarılı ödeme: `orders` + `order_items` yaz, stok düş
-- [ ] `/odeme/basarili/[orderId]` + `/odeme/hata`
-- [ ] Sipariş onay e-postası → müşteriye (Resend)
+> **5 fazda yapılıyor.** Her faz sonunda kontrol noktası. Paylaşılan İyzico sandbox demo key'leri ile (gerçek hesap açmadan) geliştirilecek.
+
+### Faz 1 — Altyapı & DB ✅
+- [x] `iyzipay` npm paketi kuruldu
+- [x] `.env.local` paylaşılan sandbox demo key'leri ile dolduruldu (`sandbox-afXh...` / `sandbox-wbwp...`)
+- [x] `supabase/migration_v2_5_orders.sql` — `order_no_seq` + `generate_order_no()` + atomic `finalize_order_stock(jsonb)` + `release_order_reservation(jsonb)` RPC'leri (SECURITY DEFINER, `for update` ile race-safe)
+- [x] `lib/iyzico/client.ts` + `iyzipay.d.ts` — Promise-sarmalayıcı: `createCheckoutForm`, `retrieveCheckoutForm`, `listInstallments`
+
+### Faz 2 — `/odeme` 3 Adım UI (ödeme tetiği hariç) ✅
+- [x] `app/(store)/odeme/page.tsx` server component — auth + sepet boşsa `/sepet` redirect; addresses + shipping_methods + profile paralel çek
+- [x] `app/(store)/odeme/CheckoutFlow.tsx` client component — 3 adımlı stepper, sticky sipariş özeti aside
+- [x] Adım 1: `addresses` kart grid (seçimli), inline "yeni adres ekle" formu (`createAddress` server action → `app/(store)/odeme/actions.ts`)
+- [x] Adım 2: `shipping_methods` listesi + ücretsiz kargo eşiği gösterimi (eşik aşıldıysa "Ücretsiz" yeşil)
+- [x] Adım 3: ödeme yöntemi tab'ları (Kart / Havale), yasal checkbox'lar (mesafeli satış + ön bilgilendirme linkleri yasal sayfalara), havale tab'ı placeholder banka bilgileri gösterir
+- [x] "Ödemeye Geç" butonu Faz 3'te aktifleşecek — şu an `alert` ile placeholder
+
+### Faz 3 — İyzico Kart Ödemesi (3DS)
+- [ ] `lib/checkout/actions.ts` `initiateCardPayment()` server action: `orders` taslağını `pending` yaz (`payment_method='credit_card'`, `generate_order_no()`), İyzico `checkoutFormInitialize` çağır, `paymentPageUrl` döndür
+- [ ] Client: iframe'i `checkoutFormContent` ile mount et (veya `paymentPageUrl` redirect)
+- [ ] `/api/iyzico/callback` route handler (POST): formdata'dan `token` al → `retrieveCheckoutForm` → başarılı ise `finalize_order_stock` RPC + `orders.status='paid'` + sepet boşalt → `/odeme/basarili/[orderId]` redirect; başarısız → `release_order_reservation` + `/odeme/hata?reason=...`
+- [ ] (Opsiyonel — Faz 3.5) Taksit seçenekleri: kart 6 hane girildiğinde client'tan `/api/iyzico/installments?bin=...` → `listInstallments`
+
+### Faz 4 — Havale/EFT
+- [ ] Aynı `CheckoutFlow` içinde tab seçildiğinde: `initiateBankTransfer()` server action → `orders` `awaiting_payment` yaz, stok rezerve kalır
+- [ ] Banka bilgileri **placeholder** (Banka Adı: TBD, IBAN: TR00 0000 0000 0000 0000 0000 00, Alıcı: auto-filter Ltd.) — sipariş özetinde + onay sayfasında göster
+- [ ] `/odeme/basarili/[orderId]` havale durumunda IBAN + "açıklama alanına `order_no` yazınız" uyarısı
+
+### Faz 5 — Sonuç Sayfaları + Email
+- [ ] `/odeme/basarili/[orderId]` — sipariş özeti, ürünler, toplam, durum bilgisi (kart/havale)
+- [ ] `/odeme/hata` — `?reason` query'sine göre hata mesajı, "tekrar dene" + "sepete dön" butonları
+- [ ] **TODO** sipariş onay e-postası (Resend) — API key henüz alınmadı, V2.5 sonunda eklenecek
+
+---
 
 ## V2.6 — Admin Paneli (Temel) ✅ ÜRÜN YÖNETİMİ TAMAMLANDI (sipariş yönetimi V2.5 sonrası)
 
