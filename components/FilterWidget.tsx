@@ -144,7 +144,7 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
                     color: !canBuy ? "#666" : "#fff",
                     border: !canBuy ? "1px solid #222" : "none",
                     borderRadius: 5,
-                    padding: "6px 8px", fontSize: 11, fontWeight: 700,
+                    padding: "8px 10px", fontSize: 14, fontWeight: 500,
                     cursor: !canBuy ? "not-allowed" : pending ? "wait" : "pointer",
                     fontFamily: "inherit",
                   }}
@@ -264,7 +264,7 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
                     color: !canBuy ? "#666" : "#fff",
                     border: !canBuy ? "1px solid #222" : "none",
                     borderRadius: 5,
-                    padding: "6px 8px", fontSize: 11, fontWeight: 700,
+                    padding: "8px 10px", fontSize: 14, fontWeight: 500,
                     cursor: !canBuy ? "not-allowed" : pending ? "wait" : "pointer",
                     fontFamily: "inherit",
                   }}
@@ -369,7 +369,7 @@ export default function FilterWidget() {
   }, [engine]);
 
   const selStyle: React.CSSProperties = {
-    width: "100%", background: "#1a1a1a", border: "none",
+    width: "100%", backgroundColor: "#1a1a1a", border: "none",
     borderRadius: 7, padding: "14px 36px 14px 16px", color: "#e5e5e5",
     fontSize: 15, outline: "none", cursor: "pointer", appearance: "none",
     backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6l3.5 4 3.5-4z'/%3E%3C/svg%3E\")",
@@ -400,7 +400,7 @@ export default function FilterWidget() {
             <div style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{label}</div>
             <div style={disabled ? selWrapDisabled : selWrap}>
               <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}
-                style={{ ...selStyle, background: disabled ? "#0e0e0e" : "#1a1a1a", color: disabled ? "#333" : "#e5e5e5", cursor: disabled ? "not-allowed" : "pointer" }}>
+                style={{ ...selStyle, backgroundColor: disabled ? "#0e0e0e" : "#1a1a1a", color: disabled ? "#333" : "#e5e5e5", cursor: disabled ? "not-allowed" : "pointer" }}>
                 <option value="">{ph}</option>
                 {options.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
