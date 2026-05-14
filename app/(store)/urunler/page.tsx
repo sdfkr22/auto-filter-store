@@ -102,7 +102,7 @@ const s = {
   imageBox: {
     aspectRatio: "4/3", background: "linear-gradient(145deg, #101010 0%, #181818 100%)",
     display: "flex", alignItems: "center", justifyContent: "center", padding: "16px",
-    borderBottom: "1px solid #1a1a1a", borderRadius: "12px 12px 0 0", overflow: "hidden",
+    margin: "10px 10px 0", borderRadius: 8, overflow: "hidden",
   } as const,
   imagePlaceholder: {
     width: 48, height: 48, borderRadius: 8, background: "#1c1c1c",

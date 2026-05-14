@@ -34,7 +34,6 @@ type ShippingMethod = {
 const fmt = (n: number) => `₺${n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const s = {
-  layout: { display: "grid", gridTemplateColumns: "minmax(0, 1fr) 340px", gap: 24, alignItems: "start" } as const,
   steps: { display: "flex", flexDirection: "column" as const, gap: 14 },
   card: { background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 12, padding: 22 } as const,
   cardDone: { background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 12, padding: "14px 22px", display: "flex", justifyContent: "space-between", alignItems: "center" } as const,
@@ -81,7 +80,8 @@ const s = {
   checkRow: { display: "flex", gap: 10, alignItems: "flex-start", fontSize: 12, color: "#aaa", marginBottom: 10, lineHeight: 1.5 } as const,
   legalLinkBtn: { background: "none", border: "none", padding: 0, color: "#FFED00", textDecoration: "underline", cursor: "pointer", fontFamily: "inherit", fontSize: "inherit" } as const,
   error: { background: "#2a1414", border: "1px solid #5a2020", borderRadius: 6, padding: "8px 12px", fontSize: 12, color: "#e05252", marginTop: 10 } as const,
-  asideCard: { background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 12, padding: 20, position: "sticky" as const, top: 20 },
+  // sticky/top globals.css `.cart-layout > aside` üzerinden gelir (mobilde otomatik kalkar)
+  asideCard: { background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 12, padding: 20 },
   summaryRow: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: "#aaa", padding: "6px 0" } as const,
   itemRow: { display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999", padding: "3px 0" } as const,
   bankBox: { background: "#111", border: "1px solid #1e1e1e", borderRadius: 8, padding: 14, fontSize: 12, color: "#aaa", lineHeight: 1.7, marginBottom: 12 } as const,
@@ -204,7 +204,7 @@ export default function CheckoutFlow({
   const canProceedPay = paymentMethod && agreedDistance && agreedPreInfo && shippingAddressId && shippingMethodId;
 
   return (
-    <div style={s.layout}>
+    <div className="cart-layout">
       <div style={s.steps}>
         {/* ───── Adım 1: Teslimat Adresi ───── */}
         {step === 1 ? (

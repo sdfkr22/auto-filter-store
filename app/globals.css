@@ -27,8 +27,54 @@ a {
   transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s, background 0.18s;
 }
 .product-card:hover {
-  border-color: #3a4f6e !important;
+  border-color: #FFED00 !important;
   background: #131313;
   transform: translateY(-3px);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* ───── Sepet / Ödeme — responsive iki kolonlu yerleşim ─────
+   Geniş ekranda ana içerik + sticky özet.
+   < 760px: tek kolona düşer, özet ürün listesinden sonra gelir, sticky kalkar. */
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+.cart-layout > aside {
+  position: sticky;
+  top: 20px;
+}
+@media (max-width: 760px) {
+  .cart-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cart-layout > aside {
+    position: static;
+  }
+}
+
+/* Sepetteki satırlar dar ekranda taşıyor — gerektiğinde sarmasını sağla. */
+.cart-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+@media (max-width: 480px) {
+  .cart-row {
+    flex-wrap: wrap;
+  }
+  .cart-row > .cart-row-info {
+    flex-basis: calc(100% - 84px);
+  }
+  .cart-row > .cart-row-qty,
+  .cart-row > .cart-row-price,
+  .cart-row > .cart-row-remove {
+    margin-top: 8px;
+  }
+  .cart-row > .cart-row-price {
+    margin-left: auto;
+  }
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import StoreHeaderShell from "@/components/StoreHeaderShell";
+import AccountSubHeader from "@/components/AccountSubHeader";
 
 export const metadata: Metadata = { title: "Sipariş Detayı" };
 
@@ -22,10 +24,6 @@ type Params = Promise<{ orderId: string }>;
 
 const s = {
   wrap: { minHeight: "100vh", background: "#090909", color: "#e5e5e5", fontFamily: "system-ui, sans-serif" } as const,
-  header: { borderBottom: "1px solid #1a1a1a", padding: "16px 24px", display: "flex", alignItems: "center", gap: 12 } as const,
-  back: { fontSize: 13, color: "#888", textDecoration: "none" } as const,
-  sep: { color: "#333", fontSize: 13 } as const,
-  pageTitle: { fontSize: 13, color: "#e5e5e5" } as const,
   main: { maxWidth: 760, margin: "0 auto", padding: "40px 24px 80px" } as const,
   card: { background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 10, padding: 20, marginBottom: 16 } as const,
   cardTitle: { fontSize: 13, fontWeight: 700, color: "#e5e5e5", marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: 0.5 },
@@ -63,13 +61,14 @@ export default async function SiparisDetayPage({ params }: { params: Params }) {
 
   return (
     <div style={s.wrap}>
-      <header style={s.header}>
-        <Link href="/hesabim" style={s.back}>Hesabım</Link>
-        <span style={s.sep}>/</span>
-        <Link href="/hesabim/siparislerim" style={s.back}>Siparişlerim</Link>
-        <span style={s.sep}>/</span>
-        <span style={s.pageTitle}>{order.order_no}</span>
-      </header>
+      <StoreHeaderShell />
+      <AccountSubHeader
+        trail={[
+          { href: "/hesabim", label: "Hesabım" },
+          { href: "/hesabim/siparislerim", label: "Siparişlerim" },
+          { label: order.order_no },
+        ]}
+      />
 
       <main style={s.main}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>

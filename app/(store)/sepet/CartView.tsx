@@ -45,7 +45,7 @@ export default function CartView() {
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 24, alignItems: "start" }}>
+    <div className="cart-layout">
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {items.map((item) => (
           <CartRow
@@ -60,7 +60,6 @@ export default function CartView() {
       <aside style={{
         background: "#0c0c0c", border: "1px solid #1a1a1a",
         borderRadius: 12, padding: 20,
-        position: "sticky", top: 20,
       }}>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: "#e5e5e5" }}>Sipariş Özeti</div>
 
@@ -166,10 +165,12 @@ function CartRow({
   });
 
   return (
-    <div style={{
-      background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 10,
-      padding: 14, display: "flex", gap: 14, alignItems: "center",
-    }}>
+    <div
+      className="cart-row"
+      style={{
+        background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 10, padding: 14,
+      }}
+    >
       <div style={{
         width: 70, height: 70, flexShrink: 0,
         background: "#111", borderRadius: 8,
@@ -183,7 +184,7 @@ function CartRow({
         )}
       </div>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="cart-row-info" style={{ flex: 1, minWidth: 0 }}>
         <Link href={`/urun/${item.productName}`} style={{ color: "#e5e5e5", textDecoration: "none" }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: isMann ? "#4a8a5a" : "#4a7aaa", textTransform: "uppercase", letterSpacing: "0.1em" }}>
             {isMann ? "MANN-FILTER" : "FİLTRON"}
@@ -200,7 +201,7 @@ function CartRow({
         {error && <div style={{ fontSize: 10, color: "#e05252", marginTop: 4 }}>{error}</div>}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+      <div className="cart-row-qty" style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
         <button type="button" disabled={pending || item.quantity <= 1} onClick={() => wrap(() => onChange(item.quantity - 1))} style={stepBtn(pending || item.quantity <= 1)} aria-label="Azalt">−</button>
         <div style={{ minWidth: 28, textAlign: "center", fontSize: 13, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
           {item.quantity}
@@ -208,7 +209,7 @@ function CartRow({
         <button type="button" disabled={pending || item.quantity >= item.stock} onClick={() => wrap(() => onChange(item.quantity + 1))} style={stepBtn(pending || item.quantity >= item.stock)} aria-label="Arttır">+</button>
       </div>
 
-      <div style={{ minWidth: 90, textAlign: "right", flexShrink: 0 }}>
+      <div className="cart-row-price" style={{ minWidth: 90, textAlign: "right", flexShrink: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#e5e5e5" }}>{fmt(lineTotal)}</div>
         {item.quantity > 1 && (
           <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{fmt(item.price)} / adet</div>
@@ -217,6 +218,7 @@ function CartRow({
 
       <button
         type="button"
+        className="cart-row-remove"
         onClick={() => wrap(onRemove)}
         disabled={pending}
         aria-label="Kaldır"
