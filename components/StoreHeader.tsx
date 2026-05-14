@@ -94,7 +94,17 @@ export default function StoreHeader({
 
   return (
     <header style={s.header}>
-      <Link href="/" style={s.logo} aria-label="otofiltrem.com">
+      <Link
+        href="/"
+        style={s.logo}
+        aria-label="otofiltrem.com"
+        onClick={() => {
+          // Anasayfaya dönerken FilterWidget seçimini temizle. Aynı sayfadaysak Link re-mount yapmaz,
+          // bu yüzden hem storage'ı temizle hem custom event ile widget'a haber ver.
+          try { sessionStorage.removeItem("filterWidget:selection"); } catch {}
+          window.dispatchEvent(new Event("filterWidget:reset"));
+        }}
+      >
         <Logo height={38} />
       </Link>
       <SearchBox />

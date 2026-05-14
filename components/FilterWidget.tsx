@@ -95,7 +95,7 @@ function MannCard({ item, icon }: { item: FilterItem; icon: string }) {
       boxShadow: hovered ? `0 4px 16px ${MANN.shadow}` : "none",
       position: "relative", overflow: "hidden",
     }}>
-      <div style={{ position: "absolute", top: 0, right: 0, background: MANN.dot, borderRadius: "0 8px 0 12px", padding: "6px 10px", fontSize: 16, lineHeight: 1, color: "#fff" }}>{icon}</div>
+      <div style={{ position: "absolute", top: 6, right: 8, fontSize: 16, lineHeight: 1, color: "#888" }}>{icon}</div>
 
       <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 6, background: MANN.badge, padding: "2px 8px 2px 6px", borderRadius: 4, border: `1px solid ${MANN.badgeBorder}` }}>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: MANN.dot }} />
@@ -215,7 +215,7 @@ function FiltronCard({ item, icon }: { item: FilterItem; icon: string }) {
       boxShadow: hovered ? `0 4px 16px ${FILTRON.shadow}` : "none",
       position: "relative", overflow: "hidden",
     }}>
-      <div style={{ position: "absolute", top: 0, right: 0, background: FILTRON.dot, borderRadius: "0 8px 0 12px", padding: "6px 10px", fontSize: 16, lineHeight: 1, color: "#fff" }}>{icon}</div>
+      <div style={{ position: "absolute", top: 6, right: 8, fontSize: 16, lineHeight: 1, color: "#888" }}>{icon}</div>
 
       <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 6, background: FILTRON.badge, padding: "2px 8px 2px 6px", borderRadius: 4, border: `1px solid ${FILTRON.badgeBorder}` }}>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: FILTRON.dot }} />
@@ -331,6 +331,20 @@ export default function FilterWidget() {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ make, model, engine }));
     } catch {}
   }, [make, model, engine]);
+
+  // StoreHeader logosuna basıldığında "filterWidget:reset" event'i atılır — seçimleri temizle.
+  useEffect(() => {
+    function onReset() {
+      setMake("");
+      setModel("");
+      setEngine("");
+      setModels([]);
+      setEngines([]);
+      setResults(null);
+    }
+    window.addEventListener("filterWidget:reset", onReset);
+    return () => window.removeEventListener("filterWidget:reset", onReset);
+  }, []);
 
   useEffect(() => {
     setModels([]);
