@@ -21,7 +21,7 @@ const s = {
     top: 0,
     zIndex: 50,
     backgroundColor: "#090909",
-    backgroundImage: "linear-gradient(90deg, #00A758, #FFED00)",
+    backgroundImage: "linear-gradient(90deg, #2a2a2a, #2a2a2a)",
     backgroundSize: "100% 0.5px",
     backgroundPosition: "bottom",
     backgroundRepeat: "no-repeat",
