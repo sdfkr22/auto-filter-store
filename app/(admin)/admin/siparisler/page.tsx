@@ -27,7 +27,7 @@ export default async function AdminOrdersPage({
   const sb = createAdminClient();
   let query = sb
     .from("orders")
-    .select("id, order_no, status, total, currency, created_at, user_id", { count: "exact" })
+    .select("id, order_no, status, total, currency, created_at, user_id, payment_method", { count: "exact" })
     .order("created_at", { ascending: false })
     .limit(100);
   if (status) query = query.eq("status", status);
@@ -57,16 +57,13 @@ export default async function AdminOrdersPage({
           <div style={{ padding: 48, textAlign: "center", color: "#666" }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>📦</div>
             <div>Henüz sipariş yok.</div>
-            <div style={{ fontSize: 12, marginTop: 8, color: "#555" }}>
-              Sipariş yönetimi V2.5 (Ödeme) tamamlanınca aktifleşecek.
-            </div>
           </div>
         ) : (
           <>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "160px 1fr 140px 140px 120px",
+                gridTemplateColumns: "160px 1fr 110px 140px 140px 120px",
                 gap: 12,
                 padding: "12px 16px",
                 background: "#0e0e0e",
@@ -80,25 +77,32 @@ export default async function AdminOrdersPage({
             >
               <div>Sipariş No</div>
               <div>Müşteri</div>
+              <div>Ödeme</div>
               <div>Durum</div>
               <div>Tutar</div>
               <div>Tarih</div>
             </div>
             {(orders ?? []).map((o) => (
-              <div
+              <Link
                 key={o.id}
+                href={`/admin/siparisler/${o.id}`}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "160px 1fr 140px 140px 120px",
+                  gridTemplateColumns: "160px 1fr 110px 140px 140px 120px",
                   gap: 12,
                   padding: "12px 16px",
                   borderBottom: "1px solid #1a1a1a",
                   alignItems: "center",
                   fontSize: 14,
+                  textDecoration: "none",
+                  color: "inherit",
                 }}
               >
                 <div style={{ fontFamily: "monospace", color: "#fff" }}>{o.order_no}</div>
                 <div style={{ color: "#aaa", fontSize: 12 }}>{o.user_id?.slice(0, 8)}…</div>
+                <div style={{ fontSize: 12, color: "#888" }}>
+                  {o.payment_method === "credit_card" ? "Kart" : o.payment_method === "bank_transfer" ? "Havale" : "—"}
+                </div>
                 <div>
                   <span style={statusBadgeStyle(o.status)}>
                     {STATUS_LABELS[o.status] ?? o.status}
@@ -110,7 +114,7 @@ export default async function AdminOrdersPage({
                 <div style={{ color: "#888", fontSize: 12 }}>
                   {o.created_at ? new Date(o.created_at).toLocaleDateString("tr-TR") : "—"}
                 </div>
-              </div>
+              </Link>
             ))}
           </>
         )}

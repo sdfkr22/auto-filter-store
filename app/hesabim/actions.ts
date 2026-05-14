@@ -53,3 +53,22 @@ export async function updateBillingInfo(
   revalidatePath("/hesabim/fatura-bilgileri");
   return { error: null, success: true };
 }
+
+export async function updatePassword(
+  _: { error: string | null; success: boolean },
+  formData: FormData
+): Promise<{ error: string | null; success: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Oturum bulunamadı.", success: false };
+
+  const password = (formData.get("password") as string) || "";
+  const passwordRepeat = (formData.get("password_repeat") as string) || "";
+
+  if (password.length < 8) return { error: "Şifre en az 8 karakter olmalı.", success: false };
+  if (password !== passwordRepeat) return { error: "Şifreler eşleşmiyor.", success: false };
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: "Şifre güncellenemedi.", success: false };
+  return { error: null, success: true };
+}

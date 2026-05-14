@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 import { createAddress } from "./actions";
+import { initiateCardPayment, initiateBankTransfer } from "@/lib/checkout/actions";
+import LegalModal from "@/components/LegalModal";
+import MesafeliSatisContent from "../mesafeli-satis-sozlesmesi/Content";
+import OnBilgilendirmeContent from "../on-bilgilendirme-formu/Content";
 import type { CartItem } from "@/lib/cart/actions";
 
 type Address = {
@@ -76,6 +79,7 @@ const s = {
     cursor: "pointer", fontFamily: "inherit",
   }) as const,
   checkRow: { display: "flex", gap: 10, alignItems: "flex-start", fontSize: 12, color: "#aaa", marginBottom: 10, lineHeight: 1.5 } as const,
+  legalLinkBtn: { background: "none", border: "none", padding: 0, color: "#FFED00", textDecoration: "underline", cursor: "pointer", fontFamily: "inherit", fontSize: "inherit" } as const,
   error: { background: "#2a1414", border: "1px solid #5a2020", borderRadius: 6, padding: "8px 12px", fontSize: 12, color: "#e05252", marginTop: 10 } as const,
   asideCard: { background: "#0c0c0c", border: "1px solid #1a1a1a", borderRadius: 12, padding: 20, position: "sticky" as const, top: 20 },
   summaryRow: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: "#aaa", padding: "6px 0" } as const,
@@ -117,6 +121,45 @@ export default function CheckoutFlow({
   const [showNewAddress, setShowNewAddress] = useState(initialAddresses.length === 0);
   const [savingAddress, setSavingAddress] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
+
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [openLegal, setOpenLegal] = useState<"distance" | "preinfo" | null>(null);
+
+  async function handlePay() {
+    if (!shippingAddressId || !shippingMethodId) return;
+    setPayError(null);
+
+    if (paymentMethod === "credit_card") {
+      setPaying(true);
+      const res = await initiateCardPayment({
+        shippingAddressId,
+        billingAddressId: sameBilling ? shippingAddressId : (billingAddressId ?? shippingAddressId),
+        shippingMethodId,
+      });
+      if (!res.ok) {
+        setPayError(res.error);
+        setPaying(false);
+        return;
+      }
+      window.location.href = res.paymentPageUrl;
+      return;
+    }
+
+    // Havale/EFT
+    setPaying(true);
+    const res = await initiateBankTransfer({
+      shippingAddressId,
+      billingAddressId: sameBilling ? shippingAddressId : (billingAddressId ?? shippingAddressId),
+      shippingMethodId,
+    });
+    if (!res.ok) {
+      setPayError(res.error);
+      setPaying(false);
+      return;
+    }
+    window.location.href = `/odeme/basarili/${res.orderId}`;
+  }
 
   const subtotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.quantity, 0), [cart]);
   const selectedShipping = shippingMethods.find((m) => m.id === shippingMethodId) ?? null;
@@ -355,30 +398,33 @@ export default function CheckoutFlow({
             <label style={s.checkRow}>
               <input type="checkbox" checked={agreedDistance} onChange={(e) => setAgreedDistance(e.target.checked)} />
               <span>
-                <Link href="/mesafeli-satis-sozlesmesi" target="_blank" style={{ color: "#FFED00" }}>Mesafeli Satış Sözleşmesi</Link>'ni okudum, onaylıyorum.
+                <button type="button" onClick={() => setOpenLegal("distance")} style={s.legalLinkBtn}>
+                  Mesafeli Satış Sözleşmesi
+                </button>'ni okudum, onaylıyorum.
               </span>
             </label>
             <label style={s.checkRow}>
               <input type="checkbox" checked={agreedPreInfo} onChange={(e) => setAgreedPreInfo(e.target.checked)} />
               <span>
-                <Link href="/on-bilgilendirme-formu" target="_blank" style={{ color: "#FFED00" }}>Ön Bilgilendirme Formu</Link>'nu okudum, onaylıyorum.
+                <button type="button" onClick={() => setOpenLegal("preinfo")} style={s.legalLinkBtn}>
+                  Ön Bilgilendirme Formu
+                </button>'nu okudum, onaylıyorum.
               </span>
             </label>
 
+            {payError && <div style={s.error}>{payError}</div>}
             <div style={{ marginTop: 8 }}>
-              <button type="button" onClick={() => setStep(2)} style={s.ghostBtn}>← Geri</button>
+              <button type="button" onClick={() => setStep(2)} style={s.ghostBtn} disabled={paying}>← Geri</button>
               <button
                 type="button"
-                disabled={!canProceedPay}
-                style={s.primaryBtn(!canProceedPay)}
-                onClick={() => alert("Ödeme tetikleyici Faz 3'te eklenecek.")}
+                disabled={!canProceedPay || paying}
+                style={s.primaryBtn(!canProceedPay || paying)}
+                onClick={handlePay}
               >
-                {paymentMethod === "credit_card" ? "Ödemeye Geç →" : "Siparişi Onayla →"}
+                {paying
+                  ? "Yönlendiriliyor…"
+                  : paymentMethod === "credit_card" ? "Ödemeye Geç →" : "Siparişi Onayla →"}
               </button>
-              <div style={{ fontSize: 11, color: "#555", marginTop: 8 }}>
-                {/* Faz 2 placeholder — Faz 3'te `initiateCardPayment` / `initiateBankTransfer` server action'ları bağlanacak. */}
-                Ödeme entegrasyonu Faz 3'te aktifleştirilecek.
-              </div>
             </div>
           </div>
         )}
@@ -414,6 +460,21 @@ export default function CheckoutFlow({
           </div>
         )}
       </aside>
+
+      <LegalModal
+        open={openLegal === "distance"}
+        title="Mesafeli Satış Sözleşmesi"
+        onClose={() => setOpenLegal(null)}
+      >
+        <MesafeliSatisContent />
+      </LegalModal>
+      <LegalModal
+        open={openLegal === "preinfo"}
+        title="Ön Bilgilendirme Formu"
+        onClose={() => setOpenLegal(null)}
+      >
+        <OnBilgilendirmeContent />
+      </LegalModal>
     </div>
   );
 }

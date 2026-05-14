@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import FilterWidget from "@/components/FilterWidget";
 import StoreHeaderShell from "@/components/StoreHeaderShell";
 import { LogoMark } from "@/components/Logo";
+import FeaturedProducts from "@/components/FeaturedProducts";
 
 export const metadata: Metadata = {
   title: "auto-filter | MANN-FILTER & FILTRON Filtre Mağazası",
@@ -44,6 +45,8 @@ export default async function HomePage() {
         </div>
 
         <FilterWidget />
+
+        <FeaturedProducts />
       </main>
 
       <footer style={s.footer}>

@@ -264,16 +264,19 @@ admin_logs (
 - [x] Adım 3: ödeme yöntemi tab'ları (Kart / Havale), yasal checkbox'lar (mesafeli satış + ön bilgilendirme linkleri yasal sayfalara), havale tab'ı placeholder banka bilgileri gösterir
 - [x] "Ödemeye Geç" butonu Faz 3'te aktifleşecek — şu an `alert` ile placeholder
 
-### Faz 3 — İyzico Kart Ödemesi (3DS)
-- [ ] `lib/checkout/actions.ts` `initiateCardPayment()` server action: `orders` taslağını `pending` yaz (`payment_method='credit_card'`, `generate_order_no()`), İyzico `checkoutFormInitialize` çağır, `paymentPageUrl` döndür
-- [ ] Client: iframe'i `checkoutFormContent` ile mount et (veya `paymentPageUrl` redirect)
-- [ ] `/api/iyzico/callback` route handler (POST): formdata'dan `token` al → `retrieveCheckoutForm` → başarılı ise `finalize_order_stock` RPC + `orders.status='paid'` + sepet boşalt → `/odeme/basarili/[orderId]` redirect; başarısız → `release_order_reservation` + `/odeme/hata?reason=...`
+### Faz 3 — İyzico Kart Ödemesi (3DS) ✅
+- [x] `lib/checkout/actions.ts` `initiateCardPayment()` server action: `orders` taslağını `pending` yaz, `order_items` kaydet, conversationId üret (notes alanına yazılıyor), İyzico `checkoutFormInitialize` çağır, `{ orderId, paymentPageUrl, token }` döndür. Başarısız init'te order `cancelled` işaretlenir.
+- [x] Client (`CheckoutFlow.handlePay`): `paymentPageUrl`'e `window.location.href` ile yönlendirme (iframe yerine — daha basit, 3DS akışı kendi içinde dönüyor)
+- [x] `/api/payment/callback` (POST): formdata'dan `token` → `retrieveCheckoutForm` → başarılıysa `finalize_order_stock` RPC + `orders.status='paid'` + `iyzico_payment_id` + `cart_items` sil → `/odeme/basarili/[orderId]` 303 redirect. Başarısızsa `release_order_reservation` + order `cancelled` + `/odeme/hata?reason=...`
+- [x] `/odeme/basarili/[orderId]` ve `/odeme/hata` sayfaları (Faz 5 ile birleştirildi — kart akışı uçtan uca test edilebilsin diye)
 - [ ] (Opsiyonel — Faz 3.5) Taksit seçenekleri: kart 6 hane girildiğinde client'tan `/api/iyzico/installments?bin=...` → `listInstallments`
 
-### Faz 4 — Havale/EFT
-- [ ] Aynı `CheckoutFlow` içinde tab seçildiğinde: `initiateBankTransfer()` server action → `orders` `awaiting_payment` yaz, stok rezerve kalır
-- [ ] Banka bilgileri **placeholder** (Banka Adı: TBD, IBAN: TR00 0000 0000 0000 0000 0000 00, Alıcı: auto-filter Ltd.) — sipariş özetinde + onay sayfasında göster
-- [ ] `/odeme/basarili/[orderId]` havale durumunda IBAN + "açıklama alanına `order_no` yazınız" uyarısı
+### Faz 4 — Havale/EFT ✅
+- [x] `initiateBankTransfer()` server action (`lib/checkout/actions.ts`): order `awaiting_payment`, payment_method `bank_transfer`, order_items kaydet, stok rezerve kalır (finalize çağrılmaz). Sepet temizlenir (kullanıcı havale beklerken aynı ürünleri tekrar sipariş etmesin).
+- [x] CheckoutFlow havale tab'ı `handlePay` → `initiateBankTransfer` → `/odeme/basarili/[orderId]` redirect
+- [x] Banka bilgileri placeholder (Faz 2'de eklenmiş): hem `/odeme` özetinde hem `/odeme/basarili` sayfasında göster
+- [x] `/odeme/basarili/[orderId]` havale akışında IBAN bloğu + "açıklama alanına `order_no` yazınız" uyarısı (kart akışında gizleniyor)
+- [ ] **Açık iş — V2.6 sipariş yönetiminde:** admin havale onayında `finalize_order_stock` RPC çağırıp `paid` yapacak; iptalde `release_order_reservation`
 
 ### Faz 5 — Sonuç Sayfaları + Email
 - [ ] `/odeme/basarili/[orderId]` — sipariş özeti, ürünler, toplam, durum bilgisi (kart/havale)
@@ -291,20 +294,33 @@ admin_logs (
   - **Inline edit:** fiyat & stok input'ları blur'da kaydeder; aktif/pasif toggle butonu. Server action: `updateProduct` (`lib/admin/product-actions.ts`).
   - Detay sayfası `/admin/urunler/[id]`: tüm alanlar (price, compare_price, stock, label, image_url, description TR/EN, meta TR/EN, active, featured). `reserved_stock` readonly.
   - Cache invalidation: her güncelleme `revalidateTag("products", "max")` + `revalidatePath("/urunler" | "/" | "/urun/[name]")` — V5.5'teki cache invalidation TODO'sunu da kapatır.
-- [ ] **Sipariş Yönetimi** (`/admin/siparisler`) — **iskelet sayfası mevcut** (durum filtre chip'leri + boş state); aşağıdakiler V2.5 sonrası dolacak:
-  - Durum güncelle (pending → paid → shipped → delivered)
-  - Havale onayı: referans no eşleştir → `paid`
-  - Kargo takip numarası gir
-  - Detay sayfası
-- [ ] Kargo takip no girilince müşteriye e-posta bildirimi (V2.5 sonrası)
+- [x] **Sipariş Yönetimi** (`/admin/siparisler`):
+  - Liste sayfası: durum filtre chip'leri, ödeme yöntemi kolonu, satırlar `/admin/siparisler/[id]` linkine açılır
+  - **Detay sayfası** (`/admin/siparisler/[id]`): ürünler tablosu, teslimat+fatura adresi, müşteri & kargo bilgisi, İyzico payment ID / havale ref / notes
+  - Sağ panel aksiyonları (`OrderActions.tsx`):
+    - **Havale onayı**: dekont no gir → `confirmBankTransfer` (`finalize_order_stock` RPC + `paid`)
+    - **Kargoya ver**: firma + takip no gir → `setCargoTracking` (`shipped`'e geçer)
+    - Durum geçişleri: `paid → preparing`, `shipped → delivered`
+    - **İptal**: pending/awaiting_payment → `release_order_reservation`, paid/preparing/shipped → stok geri ekle
+  - Server actions: `lib/admin/order-actions.ts` (admin auth + revalidatePath)
+- [ ] Kargo takip no girilince müşteriye e-posta bildirimi (Resend domain doğrulanınca)
 
-## V2.7 — Temel Yasal Sayfalar
+## V2.9 — Hesap Alt Sayfaları ✅
 
-- [ ] `/mesafeli-satis-sozlesmesi` — zorunlu, Türk Tüketici Kanunu
-- [ ] `/on-bilgilendirme-formu` — zorunlu
-- [ ] `/iade-ve-degisim` — 14 günlük iade hakkı
-- [ ] `/kargo-bilgisi` — kargo ücretleri ve tahmini süreler
-- [ ] `/iletisim` — adres, telefon, e-posta, basit iletişim formu
+- [x] `/hesabim/profilim` — kişisel bilgiler (ad, telefon) + şifre değiştirme. `updateProfile` mevcut, `updatePassword` (Supabase `auth.updateUser`) eklendi.
+- [x] `/hesabim/adreslerim` — adres listesi, ekle/düzenle/sil/varsayılan yap. `lib`'e değil sayfa-özel `actions.ts`'e koyuldu (`createUserAddress`, `updateUserAddress`, `deleteUserAddress`, `setDefaultAddress`). RLS user_id kapsamında güvenli.
+- [x] `/hesabim/siparislerim` — son 50 sipariş listesi, durum badge'leri, satır → detay
+- [x] `/hesabim/siparislerim/[orderId]` — müşteri tarafı detay: havale beklenirken IBAN uyarısı, kargo takip kutusu, ürünler + toplamlar, teslimat adresi. RLS ile başkasının siparişine erişim engellenir.
+
+## V2.7 — Temel Yasal Sayfalar ✅
+
+- [x] `components/LegalPageShell.tsx` — ortak başlık + içerik wrapper
+- [x] `/mesafeli-satis-sozlesmesi` — taraflar, cayma hakkı, yetki maddeleri (TKHK 6502)
+- [x] `/on-bilgilendirme-formu` — satıcı bilgisi, ödeme/teslimat/cayma özetleri
+- [x] `/iade-ve-degisim` — 14 günlük iade akışı, istisnalar, hasarlı teslim
+- [x] `/kargo-bilgisi` — `shipping_methods` tablosundan canlı liste + ücretsiz kargo eşikleri
+- [x] `/iletisim` — şirket bilgi kartları + iletişim formu (`ContactForm` + `submitContactForm` server action; Resend domain doğrulanınca mail forward eklenecek, şimdilik console.log)
+- [ ] **Açık iş (prod öncesi):** Tüm `[TBD]` placeholder'ları (şirket unvanı, vergi no, adres, telefon, e-posta) gerçek bilgilerle doldurulacak. Avukat kontrolünden geçecek.
 
 ## V2.8 — Yayına Alma
 
@@ -324,19 +340,23 @@ admin_logs (
 
 ---
 
-## V3.1 — Ürün Arama
+## V3.1 — Ürün Arama ✅
 
-- [ ] Header'da arama çubuğu (her sayfada)
-- [ ] Canlı öneri: MANN kodu, Filtron kodu, araç adı ile (Supabase full-text)
-- [ ] `/arama?q=W712` — arama sonuçları sayfası
-- [ ] Sonuç yoksa: benzer ürün önerileri
+- [x] `app/api/search/route.ts` — `?q=` GET, `product_name` + `product_fancy_name` ILIKE araması (PostgREST `or` filter), aktif ürünler, stok azalan sırada, ilk 8 sonuç
+- [x] `components/SearchBox.tsx` — debounced (220ms) input, dropdown öneri listesi, MANN/Filtron rozeti + fiyat/stok, klavye navigasyonu (↑↓ Enter Esc), dış tıklamayla kapanır
+- [x] `StoreHeader`'a entegre — her sayfada görünür
+- [x] `/arama?q=...` — tam sonuç sayfası, sayfalama (48/sayfa), sonuç yoksa araç seçiciye yönlendiren CTA
+- [ ] **Araç adıyla arama:** Şimdilik kapsam dışı. Araç verisi `mann-filter-data.json`'da (7.7 MB) ve ana sayfadaki marka→model→motor cascading dropdown bu işi zaten çok daha iyi yapıyor. Header arama kod odaklı kalıyor.
 
-## V3.2 — Gelişmiş Katalog
+## V3.2 — Gelişmiş Katalog ✅ (banner CRUD hariç)
 
-- [ ] `/urunler` — sol sidebar: kategori + marka (MANN/Filtron) + fiyat aralığı filtresi
-- [ ] Sıralama: en yeni, fiyat artan/azalan, en çok satılan
-- [ ] Sayfalama (Supabase range)
-- [ ] Ana sayfa: kampanya bannerları (admin yönetimli), öne çıkan ürünler
+- [x] `/urunler` — sol sidebar (`FilterSidebar.tsx`): kategori vertical list, marka (Tümü/MANN/Filtron radio), fiyat aralığı min/max
+- [x] Sıralama dropdown (`SortSelect.tsx`): Alfabetik / En Yeni / Fiyat Artan / Fiyat Azalan
+- [x] Filtre + sıralama URL'ye yansıyor (`kategori`, `marka`, `min`, `max`, `sirala`, `sayfa`); paylaşılabilir/bookmarklanabilir
+- [x] Sayfalama mevcut (48/sayfa) — filtre değişince `sayfa` otomatik resetlenir
+- [x] **Öne çıkan ürünler:** `components/FeaturedProducts.tsx` — `products.featured = true && stock > 0 && price > 0` en fazla 8 ürün, anasayfada `FilterWidget`'ın altında render
+- [ ] **Banner CRUD** ertelendi: `banners` tablosu schema'da var ama admin upload UI (Supabase Storage entegrasyonu) ayrı bir iş. V3.9 (admin genişletme) ile birlikte yapılacak.
+- [ ] **"En çok satılan" sıralama:** Satış sayacı kolonu yok. V4 (analytics) eklenince `orders` üzerinden hesaplanabilir.
 
 ## V3.3 — Favoriler
 

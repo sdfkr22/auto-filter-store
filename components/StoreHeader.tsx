@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 import { signOut } from "@/app/hesabim/actions";
 import Logo from "@/components/Logo";
+import SearchBox from "@/components/SearchBox";
 
 export type StoreHeaderUser = {
   displayName: string | null;
@@ -96,6 +97,7 @@ export default function StoreHeader({
       <Link href="/" style={s.logo} aria-label="otofiltrem.com">
         <Logo height={38} />
       </Link>
+      <SearchBox />
       <nav style={s.nav}>
         {showProductsLink && (
           <Link href="/urunler" className="nav-link" style={s.navLink}>

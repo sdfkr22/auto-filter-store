@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "filtron.eu" },
     ],
   },
+  // iyzipay paketi fs.readdirSync + dinamik require ile resource dosyalarını yüklüyor;
+  // Turbopack/Webpack statik analiz edemediği için node-side external olarak bırakıyoruz.
+  serverExternalPackages: ["iyzipay"],
 };
 
 export default nextConfig;
