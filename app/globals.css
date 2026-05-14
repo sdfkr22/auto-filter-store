@@ -27,7 +27,7 @@ a {
   transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s, background 0.18s;
 }
 .product-card:hover {
-  border-color: #FFED00 !important;
+  border-color: rgba(255, 237, 0, 0.55) !important;
   background: #131313;
   transform: translateY(-3px);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
