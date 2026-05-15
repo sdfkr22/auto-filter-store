@@ -41,6 +41,7 @@ const s = {
     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#333",
   } as const,
   body: { padding: "14px 16px 8px", display: "flex", flexDirection: "column" as const, gap: 6, flex: 1 } as const,
+  badgeRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 } as const,
   badge: {
     display: "inline-flex", alignItems: "center", gap: 5,
     fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
@@ -94,9 +95,6 @@ export default async function FavorilerPage() {
               const outLabel = p.stock <= 0 ? "Tükendi" : "Fiyat sorunuz";
               return (
                 <div key={p.productId} style={s.card}>
-                  <div style={{ position: "absolute", top: 8, right: 8, zIndex: 2 }}>
-                    <WishlistButton productId={p.productId} variant="icon-floating" />
-                  </div>
                   <Link href={`/urun/${encodeURIComponent(p.productName)}`} style={s.cardLink}>
                     <div style={s.imageBox}>
                       {p.imageUrl ? (
@@ -106,7 +104,10 @@ export default async function FavorilerPage() {
                       )}
                     </div>
                     <div style={s.body}>
-                      <span style={s.badge}>{isMann ? "MANN" : "FILTRON"}</span>
+                      <div style={s.badgeRow}>
+                        <span style={s.badge}>{isMann ? "MANN" : "FILTRON"}</span>
+                        <WishlistButton productId={p.productId} variant="icon" />
+                      </div>
                       <div style={s.name}>{p.productName}</div>
                       {p.productFancyName && p.productFancyName !== p.productName && (
                         <div style={s.fancy}>{p.productFancyName}</div>
