@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabaseAnon } from "@/lib/supabase/anon";
 import StoreHeaderShell from "@/components/StoreHeaderShell";
 import AddToCartButton from "./AddToCartButton";
+import WishlistButton from "@/components/wishlist/WishlistButton";
 import FilterSidebar from "./FilterSidebar";
 import SortSelectClient from "./SortSelect";
 
@@ -243,7 +244,8 @@ export default async function UrunlerPage({
                   const mann = isMann(p.product_type);
                   const enabled = p.stock > 0 && p.price > 0;
                   return (
-                    <div key={p.id} className="product-card" style={s.card}>
+                    <div key={p.id} className="product-card" style={{ ...s.card, position: "relative" }}>
+                      <WishlistButton productId={p.id} variant="icon-floating" />
                       <Link href={`/urun/${p.product_name}`} style={s.cardLink}>
                         <div style={{ ...s.imageBox, position: "relative" }}>
                           {p.image_url ? (

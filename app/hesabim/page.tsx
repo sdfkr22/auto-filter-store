@@ -20,6 +20,7 @@ const s = {
 
 const navItems = [
   { href: "/hesabim/siparislerim", icon: "📦", title: "Siparişlerim", sub: "Sipariş geçmişini görüntüle" },
+  { href: "/hesabim/favoriler", icon: "❤", title: "Favorilerim", sub: "Beğendiğin ürünler" },
   { href: "/hesabim/adreslerim", icon: "📍", title: "Adreslerim", sub: "Teslimat adreslerini yönet" },
   { href: "/hesabim/profilim", icon: "👤", title: "Profilim", sub: "Ad, soyad, telefon güncelle" },
   { href: "/hesabim/fatura-bilgileri", icon: "🧾", title: "Fatura Bilgileri", sub: "TC / Vergi numarası" },

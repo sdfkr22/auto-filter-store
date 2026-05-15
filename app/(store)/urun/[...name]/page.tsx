@@ -6,6 +6,7 @@ import { getCompatibleVehicles } from "@/lib/mann-data";
 import { supabaseAnon } from "@/lib/supabase/anon";
 import ProductImage from "./ProductImage";
 import AddToCart from "./AddToCart";
+import WishlistButton from "@/components/wishlist/WishlistButton";
 import BackButton from "./BackButton";
 import StoreHeaderShell from "@/components/StoreHeaderShell";
 
@@ -180,9 +181,12 @@ export default async function UrunDetayPage({
               </div>
             </div>
 
-            {/* Alt: adet + sepet butonu */}
-            <div style={{ padding: "0 16px 16px" }}>
-              <AddToCart productId={product.id} stock={product.stock} hasPrice={hasPrice} />
+            {/* Alt: adet + sepet butonu + favori */}
+            <div style={{ padding: "0 16px 16px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <div style={{ flex: 1 }}>
+                <AddToCart productId={product.id} stock={product.stock} hasPrice={hasPrice} />
+              </div>
+              <WishlistButton productId={product.id} />
             </div>
 
           </div>

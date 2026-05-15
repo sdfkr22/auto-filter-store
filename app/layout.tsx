@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import CartProvider from "@/components/cart/CartProvider";
+import WishlistProvider from "@/components/wishlist/WishlistProvider";
 import { getCurrentUser } from "@/lib/auth/user";
 import { getCart } from "@/lib/cart/actions";
+import { getWishlistIds } from "@/lib/wishlist/actions";
 
 export const metadata: Metadata = {
   title: {
@@ -24,13 +26,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getCurrentUser();
-  const initialItems = user ? await getCart() : [];
+  const [initialItems, initialWishlistIds] = await Promise.all([
+    user ? getCart() : Promise.resolve([]),
+    user ? getWishlistIds() : Promise.resolve([]),
+  ]);
 
   return (
     <html lang="tr">
       <body style={{ background: "#090909", color: "#e5e5e5", fontFamily: "'Segoe UI', system-ui, sans-serif", minHeight: "100vh" }}>
         <CartProvider isAuthenticated={!!user} initialItems={initialItems}>
-          {children}
+          <WishlistProvider isAuthenticated={!!user} initialIds={initialWishlistIds}>
+            {children}
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { supabaseAnon } from "@/lib/supabase/anon";
+import WishlistButton from "@/components/wishlist/WishlistButton";
 
 const fmt = (n: number) => `₺${Number(n).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -44,8 +45,10 @@ export default async function FeaturedProducts() {
               style={{
                 background: "#0f0f0f", border: "1px solid #1c1c1c", borderRadius: 10,
                 textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", overflow: "hidden",
+                position: "relative",
               }}
             >
+              <WishlistButton productId={p.id} variant="icon-floating" />
               <div style={{ aspectRatio: "1/1", position: "relative", background: "linear-gradient(145deg, #101010, #181818)", borderBottom: "1px solid #1a1a1a" }}>
                 {p.image_url ? (
                   <Image src={p.image_url} alt={p.product_name} fill sizes="180px" style={{ objectFit: "contain", padding: 14 }} />

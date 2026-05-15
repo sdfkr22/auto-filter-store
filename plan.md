@@ -278,9 +278,9 @@ admin_logs (
 - [x] `/odeme/basarili/[orderId]` havale akışında IBAN bloğu + "açıklama alanına `order_no` yazınız" uyarısı (kart akışında gizleniyor)
 - [ ] **Açık iş — V2.6 sipariş yönetiminde:** admin havale onayında `finalize_order_stock` RPC çağırıp `paid` yapacak; iptalde `release_order_reservation`
 
-### Faz 5 — Sonuç Sayfaları + Email
-- [ ] `/odeme/basarili/[orderId]` — sipariş özeti, ürünler, toplam, durum bilgisi (kart/havale)
-- [ ] `/odeme/hata` — `?reason` query'sine göre hata mesajı, "tekrar dene" + "sepete dön" butonları
+### Faz 5 — Sonuç Sayfaları + Email ✅ (e-posta hariç)
+- [x] `/odeme/basarili/[orderId]` — sipariş özeti, ürünler, toplam, durum bilgisi (kart/havale)
+- [x] `/odeme/hata` — `?reason` query'sine göre hata mesajı, "tekrar dene" + "sepete dön" butonları
 - [ ] **TODO** sipariş onay e-postası (Resend) — API key henüz alınmadı, V2.5 sonunda eklenecek
 
 ---
@@ -358,12 +358,15 @@ admin_logs (
 - [ ] **Banner CRUD** ertelendi: `banners` tablosu schema'da var ama admin upload UI (Supabase Storage entegrasyonu) ayrı bir iş. V3.9 (admin genişletme) ile birlikte yapılacak.
 - [ ] **"En çok satılan" sıralama:** Satış sayacı kolonu yok. V4 (analytics) eklenince `orders` üzerinden hesaplanabilir.
 
-## V3.3 — Favoriler
+## V3.3 — Favoriler ✅
 
-- [ ] Kalp ikonu — ürün kartlarında + detay sayfasında
-- [ ] Giriş yoksa → login'e yönlendir
-- [ ] Header'da favori adedi rozeti
-- [ ] `/hesabim/favoriler` sayfası
+- [x] `lib/wishlist/actions.ts` — `addToWishlist`, `removeFromWishlist`, `toggleWishlist`, `getWishlist`, `getWishlistIds` (RLS user_id kapsamında güvenli)
+- [x] `components/wishlist/WishlistProvider.tsx` — id seti context, optimistic toggle, rollback on error
+- [x] `components/wishlist/WishlistButton.tsx` — kalp ikonu (icon / icon-floating variant), aktif=kırmızı dolu, giriş yoksa `/giris?next=...`'e yönlendir
+- [x] Kalp ikonu — ürün kartlarında (FeaturedProducts + `/urunler` listesi) + detay sayfasında AddToCart yanında
+- [x] Header'da favori adedi rozeti (yalnızca giriş yapmışsa görünür)
+- [x] `/hesabim/favoriler` sayfası — ürün kartları, favoriden çıkar (kalp tekrar tıklandığında), sepete ekle
+- [x] `/hesabim` ana sayfasına Favorilerim kartı eklendi
 
 ## V3.4 — Kupon / İndirim Kodları
 
