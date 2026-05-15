@@ -173,7 +173,9 @@ export default function ProductRow({ product }: { product: Product }) {
 const cellInputStyle: React.CSSProperties = {
   padding: "6px 8px",
   background: "#0a0a0a",
-  border: "1px solid #222",
+  borderWidth: 1,
+  borderStyle: "solid",
+  borderColor: "#222",
   borderRadius: 4,
   color: "#e5e5e5",
   fontSize: 13,
