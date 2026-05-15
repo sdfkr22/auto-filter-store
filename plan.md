@@ -368,13 +368,16 @@ admin_logs (
 - [x] `/hesabim/favoriler` sayfası — ürün kartları, favoriden çıkar (kalp tekrar tıklandığında), sepete ekle
 - [x] `/hesabim` ana sayfasına Favorilerim kartı eklendi
 
-## V3.4 — Kupon / İndirim Kodları
+## V3.4 — Kupon / İndirim Kodları ✅
 
-- [ ] Sepet sayfasında kupon kodu alanı
-- [ ] `POST /api/coupon/validate` — doğrulama + indirim tutarı
-- [ ] % veya sabit TL indirim
-- [ ] Min sipariş tutarı + kullanım limiti + tarih kontrolü
-- [ ] `/admin/kuponlar` — kupon oluştur, düzenle, aktif/pasif
+- [x] `lib/coupon/actions.ts` — `validateCoupon(code, subtotal?)` + `validateCouponForCart`: aktif, tarih (valid_from/until), max_uses, min_order_amount kontrolleri; type=percent/fixed indirim hesabı. RLS public read yok, `createAdminClient` ile okunur.
+- [x] `components/cart/CouponBox.tsx` — input + uygula, localStorage (`auto-filter:coupon`) + custom event ile sayfa içi senkron. Hook `useAppliedCoupon` + helper `writeAppliedCoupon` export edilir.
+- [x] `CartView` — özet bölümünde indirim satırı + yeni toplam, min_order altına düşünce uyarı + manuel kaldırma
+- [x] `CheckoutFlow` — özette indirim, ödeme action'larına couponCode iletilir; başarılı ödeme sonrası kupon localStorage temizlenir
+- [x] **Server-side re-validation** `lib/checkout/actions.ts`: `initiateCardPayment` + `initiateBankTransfer` couponCode alır, tekrar doğrular (client trust edilmez), `orders.discount_amount` + `orders.coupon_id` kaydeder
+- [x] **used_count artışı**: havalede sipariş oluşunca, kart ödemesinde başarılı callback'te (best-effort)
+- [x] `/admin/kuponlar` — liste (kod/indirim/kullanım/durum), `yeni` create, `[id]` düzenle/aktif-pasif/sil. `lib/admin/coupon-actions.ts` (admin auth, FormData parse, hata mesajları, RPC yok).
+- [x] Admin sidebar nav'a "Kuponlar" linki
 
 ## V3.5 — İade Sistemi
 

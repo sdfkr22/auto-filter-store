@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { createAddress } from "./actions";
 import { initiateCardPayment, initiateBankTransfer } from "@/lib/checkout/actions";
+import { useAppliedCoupon, writeAppliedCoupon } from "@/components/cart/CouponBox";
 import LegalModal from "@/components/LegalModal";
 import MesafeliSatisContent from "../mesafeli-satis-sozlesmesi/Content";
 import OnBilgilendirmeContent from "../on-bilgilendirme-formu/Content";
@@ -103,6 +104,7 @@ export default function CheckoutFlow({
   const cartCtx = useCart();
   // server'dan gelen cart başlangıç; sayfa içi adet değişiklikleri burada izlenmez (ödeme akışında dondurulmuş varsayılır).
   void cartCtx;
+  const applied = useAppliedCoupon();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
@@ -130,18 +132,22 @@ export default function CheckoutFlow({
     if (!shippingAddressId || !shippingMethodId) return;
     setPayError(null);
 
+    const couponCode = applied?.code;
+
     if (paymentMethod === "credit_card") {
       setPaying(true);
       const res = await initiateCardPayment({
         shippingAddressId,
         billingAddressId: sameBilling ? shippingAddressId : (billingAddressId ?? shippingAddressId),
         shippingMethodId,
+        couponCode,
       });
       if (!res.ok) {
         setPayError(res.error);
         setPaying(false);
         return;
       }
+      writeAppliedCoupon(null);
       window.location.href = res.paymentPageUrl;
       return;
     }
@@ -152,12 +158,14 @@ export default function CheckoutFlow({
       shippingAddressId,
       billingAddressId: sameBilling ? shippingAddressId : (billingAddressId ?? shippingAddressId),
       shippingMethodId,
+      couponCode,
     });
     if (!res.ok) {
       setPayError(res.error);
       setPaying(false);
       return;
     }
+    writeAppliedCoupon(null);
     window.location.href = `/odeme/basarili/${res.orderId}`;
   }
 
@@ -169,7 +177,12 @@ export default function CheckoutFlow({
       : selectedShipping.free_above != null && subtotal >= selectedShipping.free_above
       ? 0
       : selectedShipping.price;
-  const total = subtotal + shippingCost;
+  const discount = applied && subtotal >= applied.coupon.minOrderAmount
+    ? (applied.coupon.type === "percent"
+        ? Math.min(subtotal, +(subtotal * (applied.coupon.value / 100)).toFixed(2))
+        : Math.min(subtotal, applied.coupon.value))
+    : 0;
+  const total = Math.max(0, subtotal + shippingCost - discount);
 
   const shippingAddress = addresses.find((a) => a.id === shippingAddressId) ?? null;
   const billingAddress = sameBilling ? shippingAddress : addresses.find((a) => a.id === billingAddressId) ?? null;
@@ -449,6 +462,12 @@ export default function CheckoutFlow({
           <span>Kargo</span>
           <span>{selectedShipping ? (shippingCost === 0 ? "Ücretsiz" : fmt(shippingCost)) : <span style={{ color: "#666" }}>—</span>}</span>
         </div>
+        {discount > 0 && applied && (
+          <div style={s.summaryRow}>
+            <span style={{ color: "#52c07a" }}>İndirim ({applied.coupon.code})</span>
+            <span style={{ color: "#52c07a" }}>-{fmt(discount)}</span>
+          </div>
+        )}
         <div style={{ height: 1, background: "#1a1a1a", margin: "8px 0" }} />
         <div style={s.summaryRow}>
           <span style={{ fontWeight: 700, color: "#e5e5e5" }}>Toplam</span>

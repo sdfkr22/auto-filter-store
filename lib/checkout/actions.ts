@@ -5,13 +5,22 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCart } from "@/lib/cart/actions";
+import { validateCoupon } from "@/lib/coupon/actions";
 import { createCheckoutForm, type BasketItem } from "@/lib/iyzico/client";
 
 export type InitiateCardPaymentInput = {
   shippingAddressId: string;
   billingAddressId: string;
   shippingMethodId: string;
+  couponCode?: string;
 };
+
+async function incrementCouponUsage(couponId: string) {
+  const admin = createAdminClient();
+  const { data } = await admin.from("coupons").select("used_count").eq("id", couponId).single();
+  if (!data) return;
+  await admin.from("coupons").update({ used_count: (data.used_count ?? 0) + 1 }).eq("id", couponId);
+}
 
 export type InitiateCardPaymentResult =
   | { ok: true; orderId: string; paymentPageUrl: string; token: string }
@@ -42,7 +51,16 @@ export async function initiateBankTransfer(input: InitiateCardPaymentInput): Pro
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shippingCost =
     shippingRes.data.free_above != null && subtotal >= shippingRes.data.free_above ? 0 : shippingRes.data.price;
-  const total = subtotal + shippingCost;
+
+  let couponId: string | null = null;
+  let discount = 0;
+  if (input.couponCode) {
+    const cv = await validateCoupon(input.couponCode, subtotal);
+    if (!cv.ok) return { ok: false, error: cv.error };
+    couponId = cv.coupon.id;
+    discount = cv.discount;
+  }
+  const total = Math.max(0, subtotal + shippingCost - discount);
 
   const admin = createAdminClient();
 
@@ -58,13 +76,14 @@ export async function initiateBankTransfer(input: InitiateCardPaymentInput): Pro
       status: "awaiting_payment",
       subtotal,
       shipping_cost: shippingCost,
-      discount_amount: 0,
+      discount_amount: discount,
       total,
       currency: "TRY",
       locale: "tr",
       shipping_method_id: input.shippingMethodId,
       shipping_address_id: input.shippingAddressId,
       billing_address_id: input.billingAddressId,
+      coupon_id: couponId,
       payment_method: "bank_transfer",
     })
     .select("id")
@@ -90,6 +109,8 @@ export async function initiateBankTransfer(input: InitiateCardPaymentInput): Pro
   // Havale akışında stok rezerve kalır (admin havale onayında finalize_order_stock çağıracak).
   // Sepeti boşalt — kullanıcı havale beklediği için aynı ürünleri yeniden sipariş etmemeli.
   await admin.from("cart_items").delete().eq("user_id", user.id);
+
+  if (couponId) await incrementCouponUsage(couponId);
 
   return { ok: true, orderId };
 }
@@ -118,7 +139,16 @@ export async function initiateCardPayment(input: InitiateCardPaymentInput): Prom
   const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shippingCost =
     shipping.free_above != null && subtotal >= shipping.free_above ? 0 : shipping.price;
-  const total = subtotal + shippingCost;
+
+  let couponId: string | null = null;
+  let discount = 0;
+  if (input.couponCode) {
+    const cv = await validateCoupon(input.couponCode, subtotal);
+    if (!cv.ok) return { ok: false, error: cv.error };
+    couponId = cv.coupon.id;
+    discount = cv.discount;
+  }
+  const total = Math.max(0, subtotal + shippingCost - discount);
 
   const admin = createAdminClient();
 
@@ -134,13 +164,14 @@ export async function initiateCardPayment(input: InitiateCardPaymentInput): Prom
       status: "pending",
       subtotal,
       shipping_cost: shippingCost,
-      discount_amount: 0,
+      discount_amount: discount,
       total,
       currency: "TRY",
       locale: "tr",
       shipping_method_id: input.shippingMethodId,
       shipping_address_id: input.shippingAddressId,
       billing_address_id: input.billingAddressId,
+      coupon_id: couponId,
       payment_method: "credit_card",
     })
     .select("id")

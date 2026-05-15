@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
+import CouponBox, { useAppliedCoupon, writeAppliedCoupon } from "@/components/cart/CouponBox";
 
 const FREE_SHIPPING_THRESHOLD = 0; // V2.5'te shipping_methods'tan dinamik gelecek
 
@@ -11,8 +12,21 @@ function fmt(amount: number) {
   return `₺${amount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}`;
 }
 
+function recomputeDiscount(type: "percent" | "fixed", value: number, subtotal: number): number {
+  if (type === "percent") return Math.min(subtotal, +(subtotal * (value / 100)).toFixed(2));
+  return Math.min(subtotal, value);
+}
+
 export default function CartView() {
   const { items, count, total, loading, isAuthenticated, updateQty, removeItem } = useCart();
+  const applied = useAppliedCoupon();
+
+  // Sepet değişince kupon'un min_order_amount şartı bozulabilir; client-side koruma:
+  const discount = applied && total >= applied.coupon.minOrderAmount
+    ? recomputeDiscount(applied.coupon.type, applied.coupon.value, total)
+    : 0;
+  const grandTotal = Math.max(0, total - discount);
+  const couponInvalid = applied && total > 0 && total < applied.coupon.minOrderAmount;
 
   if (loading) {
     return <div style={{ color: "#555", fontSize: 14, padding: "40px 0", textAlign: "center" }}>Sepet yükleniyor…</div>;
@@ -65,12 +79,34 @@ export default function CartView() {
 
         <Row label={`Ara toplam (${count} ürün)`} value={fmt(total)} />
         <Row label="Kargo" value={<span style={{ color: "#666" }}>Ödeme adımında</span>} />
+        {discount > 0 && applied && (
+          <Row
+            label={<span style={{ color: "#52c07a" }}>İndirim ({applied.coupon.code})</span>}
+            value={<span style={{ color: "#52c07a" }}>-{fmt(discount)}</span>}
+          />
+        )}
+
+        <CouponBox />
+
+        {couponInvalid && applied && (
+          <div style={{ fontSize: 11, color: "#e0a052", marginTop: 8 }}>
+            {applied.coupon.code} kuponu için minimum sipariş tutarı{" "}
+            ₺{applied.coupon.minOrderAmount.toLocaleString("tr-TR")} —{" "}
+            <button
+              type="button"
+              onClick={() => writeAppliedCoupon(null)}
+              style={{ background: "none", border: "none", color: "#FFED00", cursor: "pointer", padding: 0, fontFamily: "inherit", fontSize: 11, textDecoration: "underline" }}
+            >
+              kaldır
+            </button>
+          </div>
+        )}
 
         <div style={{ height: 1, background: "#1a1a1a", margin: "12px 0" }} />
 
         <Row
           label={<span style={{ fontWeight: 700, color: "#e5e5e5" }}>Toplam</span>}
-          value={<span style={{ fontWeight: 700, color: "#e5e5e5", fontSize: 18 }}>{fmt(total)}</span>}
+          value={<span style={{ fontWeight: 700, color: "#e5e5e5", fontSize: 18 }}>{fmt(grandTotal)}</span>}
         />
 
         {isAuthenticated ? (

@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   // Başarılı — order'ı bul, stok düş, paid yap, sepeti temizle
   const { data: order } = await admin
     .from("orders")
-    .select("id, user_id, order_no")
+    .select("id, user_id, order_no, coupon_id")
     .eq("order_no", result.basketId ?? "")
     .maybeSingle();
 
@@ -91,6 +91,14 @@ export async function POST(req: NextRequest) {
 
   // Kullanıcının sepetini boşalt
   await admin.from("cart_items").delete().eq("user_id", order.user_id);
+
+  // Kupon kullanım sayacı (best-effort; başarısızlık ödemeyi etkilemez)
+  if (order.coupon_id) {
+    const { data: c } = await admin.from("coupons").select("used_count").eq("id", order.coupon_id).single();
+    if (c) {
+      await admin.from("coupons").update({ used_count: (c.used_count ?? 0) + 1 }).eq("id", order.coupon_id);
+    }
+  }
 
   return NextResponse.redirect(`${origin}/odeme/basarili/${order.id}`, { status: 303 });
 }

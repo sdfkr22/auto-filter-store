@@ -43,6 +43,7 @@ export default async function AdminLayout({
           <AdminNavLink href="/admin">Dashboard</AdminNavLink>
           <AdminNavLink href="/admin/urunler">Ürünler</AdminNavLink>
           <AdminNavLink href="/admin/siparisler">Siparişler</AdminNavLink>
+          <AdminNavLink href="/admin/kuponlar">Kuponlar</AdminNavLink>
         </nav>
 
         <div style={{ marginTop: "auto", fontSize: 12, color: "#666" }}>
