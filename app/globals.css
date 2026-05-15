@@ -46,6 +46,20 @@ a {
   position: sticky;
   top: 20px;
 }
+/* Mobilde header tek satıra sığmıyor; SearchBox'ı alt satıra al, nav görünür kalsın. */
+@media (max-width: 760px) {
+  .store-header {
+    flex-wrap: wrap;
+    padding: 12px 16px !important;
+    gap: 10px !important;
+  }
+  .store-header > .search-box-wrap {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
 @media (max-width: 760px) {
   .cart-layout {
     grid-template-columns: minmax(0, 1fr);

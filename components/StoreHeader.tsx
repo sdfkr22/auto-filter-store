@@ -93,7 +93,7 @@ export default function StoreHeader({
   const { count } = useCart();
 
   return (
-    <header style={s.header}>
+    <header className="store-header" style={s.header}>
       <Link
         href="/"
         style={s.logo}
