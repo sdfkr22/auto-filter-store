@@ -121,6 +121,7 @@ export default function CheckoutFlow({
   const [agreedPreInfo, setAgreedPreInfo] = useState(false);
 
   const [showNewAddress, setShowNewAddress] = useState(initialAddresses.length === 0);
+  const [newAddressFor, setNewAddressFor] = useState<"shipping" | "billing">("shipping");
   const [savingAddress, setSavingAddress] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
 
@@ -210,8 +211,14 @@ export default function CheckoutFlow({
       is_billing: formData.get("is_billing") === "true",
     };
     setAddresses((prev) => [...prev, newAddr]);
-    setShippingAddressId(newAddr.id);
+    if (newAddressFor === "billing") {
+      setBillingAddressId(newAddr.id);
+      setSameBilling(false);
+    } else {
+      setShippingAddressId(newAddr.id);
+    }
     setShowNewAddress(false);
+    setNewAddressFor("shipping");
   }
 
   const canProceedPay = paymentMethod && agreedDistance && agreedPreInfo && shippingAddressId && shippingMethodId;
@@ -241,9 +248,57 @@ export default function CheckoutFlow({
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={() => setShowNewAddress(true)} style={s.newAddrBtn}>
+                <button
+                  type="button"
+                  onClick={() => { setNewAddressFor("shipping"); setShowNewAddress(true); }}
+                  style={s.newAddrBtn}
+                >
                   + Yeni adres ekle
                 </button>
+
+                {/* Fatura adresi */}
+                <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid #1a1a1a" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#e5e5e5", cursor: "pointer", marginBottom: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={sameBilling}
+                      onChange={(e) => {
+                        const v = e.target.checked;
+                        setSameBilling(v);
+                        if (!v && !billingAddressId) setBillingAddressId(shippingAddressId);
+                      }}
+                    />
+                    Fatura adresim teslimat adresimle aynı
+                  </label>
+
+                  {!sameBilling && (
+                    <>
+                      <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>Fatura adresini seçin</div>
+                      <div style={s.addressGrid}>
+                        {addresses.map((a) => (
+                          <div
+                            key={a.id}
+                            onClick={() => setBillingAddressId(a.id)}
+                            style={s.addressCard(a.id === billingAddressId)}
+                          >
+                            <div style={s.addrTitle}>{a.title}</div>
+                            <div style={s.addrLine}>{a.full_name}</div>
+                            <div style={s.addrLine}>{a.full_address}</div>
+                            <div style={s.addrLine}>{a.district}, {a.city}{a.zip ? ` ${a.zip}` : ""}</div>
+                            <div style={{ ...s.addrLine, marginTop: 4 }}>{a.phone}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setNewAddressFor("billing"); setShowNewAddress(true); }}
+                        style={s.newAddrBtn}
+                      >
+                        + Farklı adres ekle
+                      </button>
+                    </>
+                  )}
+                </div>
               </>
             )}
 
@@ -281,7 +336,7 @@ export default function CheckoutFlow({
                     <input style={s.input} name="zip" />
                   </div>
                 </div>
-                <input type="hidden" name="is_billing" value="false" />
+                <input type="hidden" name="is_billing" value={newAddressFor === "billing" ? "true" : "false"} />
                 {addressError && <div style={s.error}>{addressError}</div>}
                 <div style={{ marginTop: 12 }}>
                   {addresses.length > 0 && (
@@ -294,16 +349,19 @@ export default function CheckoutFlow({
               </form>
             )}
 
-            {!showNewAddress && (
-              <button
-                type="button"
-                disabled={!shippingAddressId}
-                onClick={() => setStep(2)}
-                style={s.primaryBtn(!shippingAddressId)}
-              >
-                Devam Et →
-              </button>
-            )}
+            {!showNewAddress && (() => {
+              const billingMissing = !sameBilling && !billingAddressId;
+              return (
+                <button
+                  type="button"
+                  disabled={!shippingAddressId || billingMissing}
+                  onClick={() => setStep(2)}
+                  style={s.primaryBtn(!shippingAddressId || billingMissing)}
+                >
+                  Devam Et →
+                </button>
+              );
+            })()}
           </div>
         ) : (
           <div style={s.cardDone}>
@@ -311,6 +369,13 @@ export default function CheckoutFlow({
               <div style={s.stepDoneTitle}>1. Teslimat Adresi</div>
               <div style={s.stepDoneValue}>
                 {shippingAddress ? `${shippingAddress.title} — ${shippingAddress.district}, ${shippingAddress.city}` : "—"}
+              </div>
+              <div style={{ ...s.stepDoneValue, fontSize: 12, color: "#888", marginTop: 4 }}>
+                Fatura: {sameBilling
+                  ? "teslimat ile aynı"
+                  : billingAddress
+                    ? `${billingAddress.title} — ${billingAddress.district}, ${billingAddress.city}`
+                    : "—"}
               </div>
             </div>
             <button type="button" onClick={() => setStep(1)} style={s.editBtn}>Düzenle</button>
